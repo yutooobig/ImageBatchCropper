@@ -12,3 +12,4 @@ Thumbs.db
 .env
 *.json
 !.gitignore
+!cropper_config.json

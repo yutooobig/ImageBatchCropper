@@ -23,7 +23,11 @@ class ConfigManager:
         if os.path.exists(CONFIG_FILE):
             try:
                 with open(CONFIG_FILE, 'r') as f:
-                    return json.load(f)
+                    settings = json.load(f)
+                    # 删除可能存在的旧质量设置
+                    if "quality" in settings:
+                        del settings["quality"]
+                    return settings
             except Exception as e:
                 print(f"加载配置失败: {e}")
         return {
@@ -35,8 +39,7 @@ class ConfigManager:
                 "left": 0,
                 "right": 0
             },
-            "output_format": "JPG",
-            "quality": 90
+            "output_format": "JPG"
         }
     
     @staticmethod
@@ -52,7 +55,7 @@ class ImageProcessor:
     """图片处理类"""
     
     def __init__(self, files, top_value, bottom_value, left_value, right_value, 
-                 output_dir, output_format='JPG', quality=90, crop_unit='%',
+                 output_dir, output_format='JPG', crop_unit='%',
                  progress_callback=None, file_callback=None, finish_callback=None):
         self.files = files
         self.top_value = top_value
@@ -61,7 +64,6 @@ class ImageProcessor:
         self.right_value = right_value
         self.output_dir = output_dir
         self.output_format = output_format
-        self.quality = quality
         self.crop_unit = crop_unit
         self.progress_callback = progress_callback
         self.file_callback = file_callback
@@ -174,7 +176,7 @@ class ImageProcessor:
             
             # 保存图片
             if output_ext == 'jpg':
-                cropped_img.save(output_path, 'JPEG', quality=self.quality)
+                cropped_img.save(output_path, 'JPEG')
             else:
                 # 根据输出扩展名确定保存格式
                 format_mapping = {
@@ -183,10 +185,7 @@ class ImageProcessor:
                     'tiff': 'TIFF'
                 }
                 save_format = format_mapping.get(output_ext, 'JPEG')
-                if save_format == 'JPEG':
-                    cropped_img.save(output_path, save_format, quality=self.quality)
-                else:
-                    cropped_img.save(output_path, save_format)
+                cropped_img.save(output_path, save_format)
     
     def crop_image_by_pixels(self, input_path, output_path, output_ext):
         """按像素裁剪图片"""
@@ -213,7 +212,7 @@ class ImageProcessor:
             
             # 保存图片
             if output_ext == 'jpg':
-                cropped_img.save(output_path, 'JPEG', quality=self.quality)
+                cropped_img.save(output_path, 'JPEG')
             else:
                 # 根据输出扩展名确定保存格式
                 format_mapping = {
@@ -222,10 +221,7 @@ class ImageProcessor:
                     'tiff': 'TIFF'
                 }
                 save_format = format_mapping.get(output_ext, 'JPEG')
-                if save_format == 'JPEG':
-                    cropped_img.save(output_path, save_format, quality=self.quality)
-                else:
-                    cropped_img.save(output_path, save_format)
+                cropped_img.save(output_path, save_format)
     
     def stop(self):
         """停止处理"""
@@ -247,21 +243,189 @@ class ImageCropperGUI:
     def init_ui(self):
         """初始化界面"""
         self.root.title("图片批量裁剪工具 v3.0 (增强版)")
-        self.root.geometry("800x700")
-        self.root.minsize(700, 600)
+        self.root.geometry("850x750")
+        self.root.minsize(750, 650)
+        
+        # 设置窗口图标（如果有）
+        # self.root.iconbitmap("icon.ico")
+        
+        # 设置窗口背景色
+        self.root.configure(bg="#f8f9fa")
         
         # 创建主框架
-        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame = ttk.Frame(self.root, padding="12")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         # 配置网格权重
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+        
+        # 配置ttk样式
+        style = ttk.Style()
+        
+        # 设置主题（Windows 10/11 风格）
+        style.theme_use("clam")
+        
+        # 主题色彩配置
+        primary_color = "#3498db"  # 蓝色
+        secondary_color = "#2ecc71"  # 绿色
+        accent_color = "#e74c3c"  # 红色
+        bg_color = "#f8f9fa"  # 浅灰
+        fg_color = "#2c3e50"  # 深灰
+        
+        # 配置标签框架样式
+        style.configure("TLabelFrame", 
+                       borderwidth=2,
+                       relief="ridge",
+                       font=("Segoe UI", 10, "bold"),
+                       padding=12,
+                       background=bg_color,
+                       foreground=fg_color)
+        style.configure("TLabelFrame.Label",
+                       font=("Segoe UI", 10, "bold"),
+                       foreground=primary_color)
+        
+        # 配置按钮样式
+        style.configure("TButton",
+                       font=("Segoe UI", 9),
+                       padding=(8, 4),
+                       relief="flat",
+                       background="#e1e5e9",
+                       foreground=fg_color)
+        style.map("TButton",
+                 background=[("active", primary_color), ("disabled", "#d9d9d9")],
+                 foreground=[("active", "white"), ("disabled", "#999999")],
+                 relief=[("active", "groove")])
+        
+        # 配置强调按钮样式
+        style.configure("Accent.TButton",
+                       font=("Segoe UI", 9, "bold"),
+                       padding=(8, 4),
+                       relief="flat",
+                       background=primary_color,
+                       foreground="white")
+        style.map("Accent.TButton",
+                 background=[("active", "#2980b9"), ("disabled", "#d9d9d9")],
+                 foreground=[("disabled", "#999999")],
+                 relief=[("active", "groove")])
+        
+        # 配置组合框样式
+        style.configure("TCombobox",
+                       font=("Segoe UI", 9),
+                       padding=4,
+                       background="white",
+                       foreground=fg_color)
+        style.map("TCombobox",
+                 fieldbackground=[("readonly", "white")],
+                 foreground=[("readonly", fg_color)],
+                 arrowcolor=[("active", primary_color), ("disabled", "#999999")])
+        
+        # 配置标签样式
+        style.configure("TLabel",
+                       font=("Segoe UI", 9),
+                       foreground=fg_color)
+        
+        # 配置输入框样式
+        style.configure("TEntry",
+                       font=("Segoe UI", 9),
+                       padding=4,
+                       fieldbackground="white",
+                       foreground=fg_color,
+                       bordercolor="#bdc3c7",
+                       lightcolor="#bdc3c7",
+                       darkcolor="#bdc3c7")
+        style.map("TEntry",
+                 fieldbackground=[("focus", "#f0f8ff")],
+                 bordercolor=[("focus", primary_color)],
+                 lightcolor=[("focus", primary_color)],
+                 darkcolor=[("focus", primary_color)])
+        
+        # 配置旋转框样式
+        style.configure("TSpinbox",
+                       font=("Segoe UI", 9),
+                       padding=4,
+                       background="white",
+                       foreground=fg_color)
+        style.map("TSpinbox",
+                 fieldbackground=[("focus", "#f0f8ff")],
+                 bordercolor=[("focus", primary_color)],
+                 arrowcolor=[("active", primary_color), ("disabled", "#999999")])
+        
+        # 配置进度条样式
+        style.configure("TProgressbar",
+                       thickness=12,
+                       background=primary_color,
+                       troughcolor="#e0e0e0",
+                       bordercolor="#bdc3c7")
+        
+        # 配置滚动条样式
+        style.configure("Vertical.TScrollbar",
+                       width=12,
+                       background="#e0e0e0",
+                       troughcolor="#f0f0f0",
+                       arrowcolor=fg_color)
+        style.configure("Horizontal.TScrollbar",
+                       height=12,
+                       background="#e0e0e0",
+                       troughcolor="#f0f0f0",
+                       arrowcolor=fg_color)
+        style.map("Vertical.TScrollbar",
+                 background=[("active", primary_color), ("disabled", "#d9d9d9")],
+                 arrowcolor=[("active", "white"), ("disabled", "#999999")])
+        style.map("Horizontal.TScrollbar",
+                 background=[("active", primary_color), ("disabled", "#d9d9d9")],
+                 arrowcolor=[("active", "white"), ("disabled", "#999999")])
+        
+        # 配置分隔线样式
+        style.configure("TSeparator",
+                       background=primary_color)
+        
+        # 预览窗口样式
+        style.configure("PreviewFrame.TLabelFrame",
+                       borderwidth=2,
+                       relief="ridge",
+                       font=("Segoe UI", 10, "bold"),
+                       padding=12)
+        style.configure("PreviewFrame.TLabelFrame.Label",
+                       font=("Segoe UI", 10, "bold"),
+                       foreground=primary_color)
+        
+        style.configure("InfoFrame.TLabelFrame",
+                       borderwidth=2,
+                       relief="groove",
+                       font=("Segoe UI", 10, "bold"),
+                       padding=12)
+        style.configure("InfoFrame.TLabelFrame.Label",
+                       font=("Segoe UI", 10, "bold"),
+                       foreground=secondary_color)
+        
+        # 输出设置框架
+        output_frame = ttk.LabelFrame(main_frame, text="输出设置", padding="10")
+        output_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        output_frame.columnconfigure(1, weight=1)
+        output_frame.columnconfigure(3, weight=1)
+        # 添加空行，使输出设置框架高度与裁剪参数框架对齐
+        output_frame.grid_rowconfigure(2, weight=1)
+        
+        ttk.Label(output_frame, text="输出格式:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5), pady=(0, 5))
+        self.format_var = tk.StringVar(value=self.settings.get("output_format", "自动"))
+        self.format_combo = ttk.Combobox(output_frame, textvariable=self.format_var, 
+                                        values=["自动", "JPG", "PNG", "BMP", "TIFF"], state="readonly", width=8)
+        self.format_combo.grid(row=0, column=1, sticky=tk.W, padx=(0, 20), pady=(0, 5))
+        
+        ttk.Label(output_frame, text="输出目录:").grid(row=1, column=0, sticky=tk.W, padx=(0, 5), pady=(0, 5))
+        self.output_dir_var = tk.StringVar(value=self.settings.get("output_dir", os.path.expanduser("~/Pictures/Cropped")))
+        self.output_entry = ttk.Entry(output_frame, textvariable=self.output_dir_var)
+        self.output_entry.grid(row=1, column=1, columnspan=2, sticky=(tk.W, tk.E), padx=(0, 5), pady=(0, 5))
+        
+        self.browse_btn = ttk.Button(output_frame, text="浏览", command=self.browse_output_dir)
+        self.browse_btn.grid(row=1, column=3, sticky=tk.W, pady=(0, 5))
         
         # 裁剪参数框架
         self.crop_frame = ttk.LabelFrame(main_frame, text="裁剪参数", padding="10")
-        self.crop_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        self.crop_frame.grid(row=0, column=1, sticky=(tk.W, tk.E), pady=(0, 10))
         self.crop_frame.columnconfigure(1, weight=1)
         self.crop_frame.columnconfigure(3, weight=1)
         self.crop_frame.columnconfigure(5, weight=1)
@@ -302,80 +466,59 @@ class ImageCropperGUI:
         # 根据当前单位设置spinbox范围
         self.update_spinbox_ranges()
         
-        # 输出设置框架
-        output_frame = ttk.LabelFrame(main_frame, text="输出设置", padding="10")
-        output_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
-        output_frame.columnconfigure(1, weight=1)
-        output_frame.columnconfigure(3, weight=1)
-        
-        ttk.Label(output_frame, text="输出格式:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
-        self.format_var = tk.StringVar(value=self.settings.get("output_format", "自动"))
-        self.format_combo = ttk.Combobox(output_frame, textvariable=self.format_var, 
-                                        values=["自动", "JPG", "PNG", "BMP", "TIFF"], state="readonly", width=8)
-        self.format_combo.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
-        
-        ttk.Label(output_frame, text="质量:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
-        self.quality_var = tk.IntVar(value=self.settings.get("quality", 90))
-        self.quality_spin = ttk.Spinbox(output_frame, from_=1, to=100, textvariable=self.quality_var, width=8)
-        self.quality_spin.grid(row=0, column=3, sticky=tk.W, padx=(0, 20))
-        
-        ttk.Label(output_frame, text="输出目录:").grid(row=1, column=0, sticky=tk.W, padx=(0, 5))
-        self.output_dir_var = tk.StringVar(value=self.settings.get("output_dir", os.path.expanduser("~/Pictures/Cropped")))
-        self.output_entry = ttk.Entry(output_frame, textvariable=self.output_dir_var)
-        self.output_entry.grid(row=1, column=1, columnspan=2, sticky=(tk.W, tk.E), padx=(0, 5))
-        
-        self.browse_btn = ttk.Button(output_frame, text="浏览", command=self.browse_output_dir)
-        self.browse_btn.grid(row=1, column=3, sticky=tk.W)
-        
         # 文件列表框架
         file_frame = ttk.LabelFrame(main_frame, text="待处理列表 (双击添加文件，点击预览)", padding="10")
-        file_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        file_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
         file_frame.columnconfigure(0, weight=1)
-        file_frame.rowconfigure(2, weight=1)
+        file_frame.rowconfigure(1, weight=1)
         
         # 按钮框架
         btn_frame = ttk.Frame(file_frame)
         btn_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
+        # 配置按钮框架，使右侧内容右对齐
+        btn_frame.columnconfigure(1, weight=1)
         
-        self.add_files_btn = ttk.Button(btn_frame, text="添加文件", command=self.add_files)
+        # 左侧按钮容器
+        left_btns = ttk.Frame(btn_frame)
+        left_btns.grid(row=0, column=0, sticky=tk.W)
+        
+        # 添加文件、添加文件夹、清空列表按钮
+        self.add_files_btn = ttk.Button(left_btns, text="添加文件", command=self.add_files)
         self.add_files_btn.pack(side=tk.LEFT, padx=(0, 5))
         
-        self.add_folder_btn = ttk.Button(btn_frame, text="添加文件夹", command=self.add_folder)
+        self.add_folder_btn = ttk.Button(left_btns, text="添加文件夹", command=self.add_folder)
         self.add_folder_btn.pack(side=tk.LEFT, padx=(0, 5))
         
-        self.clear_btn = ttk.Button(btn_frame, text="清空列表", command=self.clear_files)
-        self.clear_btn.pack(side=tk.LEFT)
+        self.clear_btn = ttk.Button(left_btns, text="清空列表", command=self.clear_files)
+        self.clear_btn.pack(side=tk.LEFT, padx=(0, 15))
         
-        # 显示选项框架
-        self.view_options_frame = ttk.LabelFrame(file_frame, text="显示选项")
-        self.view_options_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
+        # 右侧显示选项容器
+        right_options = ttk.Frame(btn_frame)
+        right_options.grid(row=0, column=1, sticky=tk.E)
         
         # 显示模式选择
-        mode_frame = ttk.Frame(self.view_options_frame)
-        mode_frame.pack(side=tk.LEFT, padx=(5, 15))
-        
-        ttk.Label(mode_frame, text="显示模式:").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Label(right_options, text="显示模式:").pack(side=tk.LEFT, padx=(0, 5))
         
         # 列表模式按钮
-        self.list_mode_btn = ttk.Button(mode_frame, text="列表", command=lambda: self.set_view_mode("list"))
+        self.list_mode_btn = ttk.Button(right_options, text="列表", command=lambda: self.set_view_mode("list"))
         self.list_mode_btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # 平铺模式按钮
-        self.tile_mode_btn = ttk.Button(mode_frame, text="平铺", command=lambda: self.set_view_mode("tile"))
-        self.tile_mode_btn.pack(side=tk.LEFT, padx=(0, 5))
+        self.tile_mode_btn = ttk.Button(right_options, text="平铺", command=lambda: self.set_view_mode("tile"))
+        self.tile_mode_btn.pack(side=tk.LEFT, padx=(0, 15))
         
         # 显示文件名复选框
         self.show_filename_var = tk.BooleanVar(value=True)
-        self.show_filename_check = ttk.Checkbutton(self.view_options_frame, text="显示文件名", 
+        self.show_filename_check = ttk.Checkbutton(right_options, text="显示文件名", 
                                                    variable=self.show_filename_var, command=self.toggle_filename_display)
-        self.show_filename_check.pack(side=tk.LEFT, padx=(5, 15))
+        self.show_filename_check.pack(side=tk.LEFT, padx=(5, 5))
         
         # 存储当前显示模式
         self.current_view_mode = "list"
         
         # 缩略图列表
         list_frame = ttk.Frame(file_frame)
-        list_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        list_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         list_frame.columnconfigure(0, weight=1)
         list_frame.rowconfigure(0, weight=1)
         
@@ -429,12 +572,12 @@ class ImageCropperGUI:
         # 进度条
         self.progress_var = tk.IntVar()
         self.progress_bar = ttk.Progressbar(main_frame, variable=self.progress_var, maximum=100)
-        self.progress_bar.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        self.progress_bar.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
         self.progress_bar.grid_remove()  # 初始隐藏
         
         # 控制按钮框架
         control_frame = ttk.Frame(main_frame)
-        control_frame.grid(row=4, column=0, sticky=(tk.W, tk.E))
+        control_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E))
         control_frame.columnconfigure(0, weight=1)
         control_frame.columnconfigure(1, weight=1)
         control_frame.columnconfigure(2, weight=1)
@@ -451,10 +594,10 @@ class ImageCropperGUI:
         # 状态标签
         self.status_var = tk.StringVar(value="准备就绪")
         self.status_label = ttk.Label(main_frame, textvariable=self.status_var)
-        self.status_label.grid(row=5, column=0, sticky=tk.W)
+        self.status_label.grid(row=4, column=0, columnspan=2, sticky=tk.W)
         
         # 配置权重
-        main_frame.rowconfigure(2, weight=1)
+        main_frame.rowconfigure(1, weight=1)
     
     def add_files(self, files=None):
         """添加文件到列表"""
@@ -544,6 +687,9 @@ class ImageCropperGUI:
         # 允许窗口调整大小
         self.preview_window.minsize(800, 600)
         
+        # 设置窗口图标（如果有）
+        # self.preview_window.iconbitmap("icon.ico")
+        
         # 创建主框架
         self.preview_frame = ttk.Frame(self.preview_window, padding="10")
         self.preview_frame.pack(fill=tk.BOTH, expand=True)
@@ -555,14 +701,17 @@ class ImageCropperGUI:
         # 导航按钮框架
         self.nav_frame = ttk.Frame(self.preview_frame)
         self.nav_frame.grid(row=0, column=0, sticky=tk.W+tk.E, pady=(0, 10))
+        self.nav_frame.columnconfigure(0, weight=1)
+        self.nav_frame.columnconfigure(1, weight=1)
+        self.nav_frame.columnconfigure(2, weight=1)
         
-        # 上一张按钮
-        self.prev_btn = ttk.Button(self.nav_frame, text="上一张 (←)", command=self.preview_prev_image)
-        self.prev_btn.pack(side=tk.LEFT)
+        # 上一张按钮，使用强调样式
+        self.prev_btn = ttk.Button(self.nav_frame, text="上一张 (←)", command=self.preview_prev_image, style="Accent.TButton")
+        self.prev_btn.grid(row=0, column=0, sticky=tk.W)
         
-        # 缩放控制按钮组
+        # 缩放控制按钮组，居中显示
         zoom_frame = ttk.Frame(self.nav_frame)
-        zoom_frame.pack(side=tk.LEFT, padx=(10, 0))
+        zoom_frame.grid(row=0, column=1, sticky="")
         
         # 放大按钮
         self.zoom_in_btn = ttk.Button(zoom_frame, text="放大 (+)", command=self.zoom_in)
@@ -576,9 +725,9 @@ class ImageCropperGUI:
         self.reset_zoom_btn = ttk.Button(zoom_frame, text="重置", command=self.reset_zoom)
         self.reset_zoom_btn.pack(side=tk.LEFT)
         
-        # 下一张按钮
-        self.next_btn = ttk.Button(self.nav_frame, text="下一张 (→)", command=self.preview_next_image)
-        self.next_btn.pack(side=tk.RIGHT)
+        # 下一张按钮，使用强调样式
+        self.next_btn = ttk.Button(self.nav_frame, text="下一张 (→)", command=self.preview_next_image, style="Accent.TButton")
+        self.next_btn.grid(row=0, column=2, sticky=tk.E)
         
         # 左右分栏容器
         self.content_frame = ttk.Frame(self.preview_frame)
@@ -604,23 +753,30 @@ class ImageCropperGUI:
         self.right_frame.columnconfigure(0, weight=1)
         
         # 信息框架
-        self.info_frame = ttk.Frame(self.preview_frame)
+        self.info_frame = ttk.LabelFrame(self.preview_frame, text="图片信息", padding="10")
         self.info_frame.grid(row=2, column=0, sticky=tk.W+tk.E, pady=(10, 0))
+        self.info_frame.columnconfigure(0, weight=1)
+        self.info_frame.columnconfigure(1, weight=1)
         
         # 创建空的信息标签，使用换行显示，避免过长文本
-        self.original_size_label = ttk.Label(self.info_frame, wraplength=400)
-        self.original_size_label.pack(side=tk.LEFT, padx=(0, 20))
+        self.original_size_label = ttk.Label(self.info_frame, wraplength=400, font=("Segoe UI", 10), foreground="#2c3e50")
+        self.original_size_label.grid(row=0, column=0, sticky=tk.W, padx=(0, 20))
         
-        self.crop_params_label = ttk.Label(self.info_frame, wraplength=600)
-        self.crop_params_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.crop_params_label = ttk.Label(self.info_frame, wraplength=600, font=("Segoe UI", 10), foreground="#2c3e50")
+        self.crop_params_label.grid(row=0, column=1, sticky=(tk.W, tk.E))
         
         # 绑定键盘快捷键
         self.preview_window.bind("<Left>", lambda e: self.preview_prev_image())
         self.preview_window.bind("<Right>", lambda e: self.preview_next_image())
+        self.preview_window.bind("<Escape>", lambda e: self.preview_window.destroy())  # 按ESC关闭预览窗口
         
-        # 预览窗口提示标签
-        self.preview_tip_label = ttk.Label(self.preview_frame, text="", foreground="gray")
+        # 预览窗口提示标签，使用现代样式
+        self.preview_tip_label = ttk.Label(self.preview_frame, text="", foreground="#3498db", font=("Segoe UI", 10, "italic"))
         self.preview_tip_label.grid(row=3, column=0, sticky=tk.W+tk.E, pady=(10, 0))
+        
+        # 添加快捷键提示
+        self.shortcut_label = ttk.Label(self.preview_frame, text="快捷键: ← 上一张 | → 下一张 | ESC 关闭", foreground="gray", font=("Segoe UI", 8))
+        self.shortcut_label.grid(row=4, column=0, sticky=tk.E, pady=(5, 0))
     
     def _update_preview_content(self, file_path, file_index):
         """更新预览窗口内容"""
@@ -1013,47 +1169,79 @@ class ImageCropperGUI:
             
             if self.current_view_mode == "list":
                 # 列表模式布局
-                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5")
-                thumb_container.grid(row=current_index * 2, sticky=(tk.W, tk.E))
+                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5", relief="flat", borderwidth=2)
+                thumb_container.grid(row=current_index * 2, sticky=(tk.W, tk.E), pady=2)
                 thumb_container.columnconfigure(1, weight=1)
                 
-                # 缩略图画布
-                thumb_canvas = tk.Canvas(thumb_container, width=80, height=80, bg="lightgray")
+                # 添加hover效果
+                thumb_container.bind("<Enter>", lambda e, container=thumb_container: container.config(relief="raised"))
+                thumb_container.bind("<Leave>", lambda e, container=thumb_container: container.config(relief="flat"))
+                
+                # 缩略图画布，添加边框
+                thumb_canvas = tk.Canvas(thumb_container, width=100, height=100, bg="white", relief="solid", borderwidth=1)
                 thumb_canvas.grid(row=0, column=0, sticky=tk.NW, padx=(0, 10))
                 
                 # 直接在内存中生成并显示缩略图
                 try:
                     with Image.open(file_path) as img:
-                        # 计算缩放比例
-                        img.thumbnail((80, 80), Image.LANCZOS)
+                        # 计算缩放比例，添加白色背景
+                        thumb_size = (100, 100)
+                        thumb_img = Image.new("RGB", thumb_size, (255, 255, 255))
+                        
+                        # 缩放原图
+                        img.thumbnail(thumb_size, Image.LANCZOS)
+                        
+                        # 计算居中位置
+                        img_width, img_height = img.size
+                        x_offset = (thumb_size[0] - img_width) // 2
+                        y_offset = (thumb_size[1] - img_height) // 2
+                        
+                        # 将缩放后的图片粘贴到白色背景上
+                        thumb_img.paste(img, (x_offset, y_offset))
                         
                         # 转换为PhotoImage
-                        img_tk = ImageTk.PhotoImage(img)
+                        img_tk = ImageTk.PhotoImage(thumb_img)
                         
                         # 居中显示
-                        thumb_canvas.create_image(40, 40, image=img_tk)
+                        thumb_canvas.create_image(50, 50, image=img_tk)
                         thumb_canvas.image = img_tk  # 保持引用
+                        
+                        # 添加图片边框
+                        thumb_canvas.create_rectangle(1, 1, 99, 99, outline="#bdc3c7", width=1)
                 except Exception as e:
                     # 如果生成缩略图失败，显示错误信息
-                    thumb_canvas.create_text(40, 40, text="无法显示", fill="red")
+                    thumb_canvas.create_rectangle(1, 1, 99, 99, outline="#bdc3c7", width=1)
+                    thumb_canvas.create_text(50, 45, text="无法显示", fill="red", font=("Segoe UI", 10))
+                    thumb_canvas.create_text(50, 60, text=str(e)[:20] + "...", fill="gray", font=("Segoe UI", 8))
                     img_tk = None
                     print(f"生成缩略图失败 {file_path}: {e}")
                 
                 if self.show_filename_var.get():
                     # 文件名和信息
                     info_frame = ttk.Frame(thumb_container)
-                    info_frame.grid(row=0, column=1, sticky=(tk.W, tk.E))
+                    info_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N))
                     info_frame.columnconfigure(0, weight=1)
                     
-                    # 文件名
+                    # 文件名，使用更清晰的字体
                     filename = os.path.basename(file_path)
-                    file_label = ttk.Label(info_frame, text=filename, anchor=tk.W, wraplength=400)
-                    file_label.grid(row=0, column=0, sticky=(tk.W, tk.E))
+                    file_label = ttk.Label(info_frame, text=filename, anchor=tk.W, wraplength=500, font=("Segoe UI", 10, "bold"))
+                    file_label.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 2))
                     
                     # 文件路径（截断显示）
-                    short_path = file_path if len(file_path) < 50 else "..." + file_path[-50:]
-                    path_label = ttk.Label(info_frame, text=short_path, anchor=tk.W, foreground="gray", wraplength=400)
-                    path_label.grid(row=1, column=0, sticky=(tk.W, tk.E))
+                    short_path = file_path if len(file_path) < 60 else "..." + file_path[-60:]
+                    path_label = ttk.Label(info_frame, text=short_path, anchor=tk.W, foreground="#666", wraplength=500, font=("Segoe UI", 8))
+                    path_label.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 2))
+                    
+                    # 文件信息：尺寸和大小
+                    try:
+                        with Image.open(file_path) as img:
+                            width, height = img.size
+                            size = os.path.getsize(file_path) / 1024  # KB
+                            info_text = f"尺寸: {width}x{height}px | 大小: {size:.1f}KB"
+                            size_label = ttk.Label(info_frame, text=info_text, anchor=tk.W, foreground="#888", font=("Segoe UI", 8))
+                            size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
+                    except:
+                        pass
                     
                     # 绑定点击事件
                     file_label.bind("<Button-1>", lambda e, fp=file_path: self.preview_image(fp))
@@ -1084,8 +1272,8 @@ class ImageCropperGUI:
                 # 计算列和行，根据可用宽度动态调整列数
                 canvas_width = self.canvas.winfo_width()
                 if canvas_width > 0:
-                    # 根据画布宽度计算列数，每个缩略图宽度约为120px（含padding）
-                    cols = max(1, canvas_width // 120)
+                    # 根据画布宽度计算列数，每个缩略图宽度约为130px（含padding）
+                    cols = max(1, canvas_width // 130)
                 else:
                     cols = 4  # 默认4列
                 
@@ -1096,41 +1284,73 @@ class ImageCropperGUI:
                 for i in range(cols):
                     self.thumbnail_frame.columnconfigure(i, weight=1)
                 
-                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5")
+                # 创建缩略图容器，添加边框和hover效果
+                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5", relief="flat", borderwidth=2)
                 thumb_container.grid(row=row, column=col, padx=5, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
                 thumb_container.columnconfigure(0, weight=1)
                 
-                # 缩略图画布
-                # 动态调整缩略图大小，填充可用空间
-                thumb_width = 100
-                thumb_height = 100
+                # 添加hover效果
+                thumb_container.bind("<Enter>", lambda e, container=thumb_container: container.config(relief="raised"))
+                thumb_container.bind("<Leave>", lambda e, container=thumb_container: container.config(relief="flat"))
                 
-                thumb_canvas = tk.Canvas(thumb_container, width=thumb_width, height=thumb_height, bg="lightgray")
+                # 缩略图画布，添加边框和白色背景
+                thumb_width = 120
+                thumb_height = 120
+                
+                thumb_canvas = tk.Canvas(thumb_container, width=thumb_width, height=thumb_height, bg="white", relief="solid", borderwidth=1)
                 thumb_canvas.grid(row=0, column=0, sticky=tk.NW)
                 
                 # 直接在内存中生成并显示缩略图
                 try:
                     with Image.open(file_path) as img:
-                        # 计算缩放比例
+                        # 计算缩放比例，添加白色背景
+                        thumb_img = Image.new("RGB", (thumb_width, thumb_height), (255, 255, 255))
+                        
+                        # 缩放原图
                         img.thumbnail((thumb_width, thumb_height), Image.LANCZOS)
                         
+                        # 计算居中位置
+                        img_width, img_height = img.size
+                        x_offset = (thumb_width - img_width) // 2
+                        y_offset = (thumb_height - img_height) // 2
+                        
+                        # 将缩放后的图片粘贴到白色背景上
+                        thumb_img.paste(img, (x_offset, y_offset))
+                        
                         # 转换为PhotoImage
-                        img_tk = ImageTk.PhotoImage(img)
+                        img_tk = ImageTk.PhotoImage(thumb_img)
                         
                         # 居中显示
                         thumb_canvas.create_image(thumb_width//2, thumb_height//2, image=img_tk)
                         thumb_canvas.image = img_tk  # 保持引用
+                        
+                        # 添加图片边框
+                        thumb_canvas.create_rectangle(1, 1, thumb_width-1, thumb_height-1, outline="#bdc3c7", width=1)
                 except Exception as e:
                     # 如果生成缩略图失败，显示错误信息
-                    thumb_canvas.create_text(thumb_width//2, thumb_height//2, text="无法显示", fill="red")
+                    thumb_canvas.create_rectangle(1, 1, thumb_width-1, thumb_height-1, outline="#bdc3c7", width=1)
+                    thumb_canvas.create_text(thumb_width//2, thumb_height//2 - 10, text="无法显示", fill="red", font=(("Segoe UI", 10)))
+                    thumb_canvas.create_text(thumb_width//2, thumb_height//2 + 10, text=str(e)[:20] + "...", fill="gray", font=(("Segoe UI", 8)))
                     img_tk = None
                     print(f"生成缩略图失败 {file_path}: {e}")
                 
                 if self.show_filename_var.get():
-                    # 文件名
+                    # 文件名，使用更清晰的字体
                     filename = os.path.basename(file_path)
-                    file_label = ttk.Label(thumb_container, text=filename, anchor=tk.CENTER, wraplength=thumb_width)
-                    file_label.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(5, 0))
+                    # 截断过长的文件名
+                    if len(filename) > 20:
+                        filename = filename[:17] + "..."
+                    file_label = ttk.Label(thumb_container, text=filename, anchor=tk.CENTER, wraplength=thumb_width, font=("Segoe UI", 9), foreground="#2c3e50")
+                    file_label.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(5, 2))
+                    
+                    # 文件信息：尺寸
+                    try:
+                        with Image.open(file_path) as img:
+                            width, height = img.size
+                            size_label = ttk.Label(thumb_container, text=f"{width}x{height}px", anchor=tk.CENTER, font=("Segoe UI", 8), foreground="#888")
+                            size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
+                    except:
+                        pass
                     
                     # 绑定点击事件
                     file_label.bind("<Button-1>", lambda e, fp=file_path: self.preview_image(fp))
@@ -1181,99 +1401,6 @@ class ImageCropperGUI:
         directory = filedialog.askdirectory(title="选择输出目录")
         if directory:
             self.output_dir_var.set(directory)
-    
-    def start_processing(self):
-        """开始处理"""
-        # 验证文件列表
-        if self.file_listbox.size() == 0:
-            messagebox.showwarning("警告", "请先添加要处理的图片文件")
-            return
-        
-        # 验证裁剪参数
-        top = self.top_var.get()
-        bottom = self.bottom_var.get()
-        left = self.left_var.get()
-        right = self.right_var.get()
-        
-        if top + bottom >= 100 or left + right >= 100:
-            messagebox.showwarning("警告", "裁剪百分比总和不能超过100%")
-            return
-        
-        # 验证输出目录
-        output_dir = self.output_dir_var.get()
-        if not output_dir:
-            messagebox.showwarning("警告", "请选择输出目录")
-            return
-        
-        # 创建输出目录
-        try:
-            os.makedirs(output_dir, exist_ok=True)
-        except Exception as e:
-            messagebox.showerror("错误", f"无法创建输出目录: {e}")
-            return
-        
-        # 获取文件列表
-        files = [thumb["file_path"] for thumb in self.thumbnails]
-        
-        # 更新界面状态
-        self.start_btn.config(state="disabled")
-        self.stop_btn.config(state="normal")
-        self.progress_bar.grid()
-        self.progress_var.set(0)
-        self.update_status("开始处理...")
-        
-        # 创建处理对象
-        self.processor = ImageProcessor(
-            files, top, bottom, left, right,
-            output_dir, self.format_var.get(), self.quality_var.get(),
-            progress_callback=self.update_progress,
-            file_callback=self.on_file_processed,
-            finish_callback=self.on_processing_finished
-        )
-        
-        # 在新线程中处理
-        self.processing_thread = threading.Thread(target=self.processor.process_all)
-        self.processing_thread.daemon = True
-        self.processing_thread.start()
-    
-    def stop_processing(self):
-        """停止处理"""
-        if self.processor:
-            self.processor.stop()
-        
-        self.reset_ui()
-        self.update_status("处理已停止")
-    
-    def update_progress(self, value):
-        """更新进度条"""
-        self.progress_var.set(value)
-        self.root.update_idletasks()
-    
-    def on_file_processed(self, file_path, success, error_msg):
-        """单个文件处理完成"""
-        filename = os.path.basename(file_path)
-        if success:
-            self.update_status(f"已完成: {filename}")
-        else:
-            self.update_status(f"失败: {filename} - {error_msg}")
-    
-    def on_processing_finished(self, results):
-        """所有文件处理完成"""
-        self.reset_ui()
-        
-        msg = f"处理完成！\n成功: {results['success']} 个\n失败: {results['failed']} 个"
-        if results['failed'] > 0:
-            messagebox.showwarning("处理完成", msg)
-        else:
-            messagebox.showinfo("处理完成", msg)
-        
-        self.update_status("处理完成")
-    
-    def reset_ui(self):
-        """重置界面状态"""
-        self.start_btn.config(state="normal")
-        self.stop_btn.config(state="disabled")
-        self.progress_bar.grid_remove()
     
     def on_unit_change(self, event):
         """处理裁剪单位切换"""
@@ -1339,8 +1466,7 @@ class ImageCropperGUI:
                 "left": self.left_var.get(),
                 "right": self.right_var.get()
             },
-            "output_format": self.format_var.get(),
-            "quality": self.quality_var.get()
+            "output_format": self.format_var.get()
         }
         ConfigManager.save_settings(self.settings)
     
@@ -1392,7 +1518,7 @@ class ImageCropperGUI:
         # 创建处理对象
         self.processor = ImageProcessor(
             files, top, bottom, left, right,
-            output_dir, self.format_var.get(), self.quality_var.get(),
+            output_dir, self.format_var.get(),
             crop_unit=unit,
             progress_callback=self.update_progress,
             file_callback=self.on_file_processed,
@@ -1403,6 +1529,45 @@ class ImageCropperGUI:
         self.processing_thread = threading.Thread(target=self.processor.process_all)
         self.processing_thread.daemon = True
         self.processing_thread.start()
+    
+    def stop_processing(self):
+        """停止处理"""
+        if self.processor:
+            self.processor.stop()
+        
+        self.reset_ui()
+        self.update_status("处理已停止")
+    
+    def update_progress(self, value):
+        """更新进度条"""
+        self.progress_var.set(value)
+        self.root.update_idletasks()
+    
+    def on_file_processed(self, file_path, success, error_msg):
+        """单个文件处理完成"""
+        filename = os.path.basename(file_path)
+        if success:
+            self.update_status(f"已完成: {filename}")
+        else:
+            self.update_status(f"失败: {filename} - {error_msg}")
+    
+    def on_processing_finished(self, results):
+        """所有文件处理完成"""
+        self.reset_ui()
+        
+        msg = f"处理完成！\n成功: {results['success']} 个\n失败: {results['failed']} 个"
+        if results['failed'] > 0:
+            messagebox.showwarning("处理完成", msg)
+        else:
+            messagebox.showinfo("处理完成", msg)
+        
+        self.update_status("处理完成")
+    
+    def reset_ui(self):
+        """重置界面状态"""
+        self.start_btn.config(state="normal")
+        self.stop_btn.config(state="disabled")
+        self.progress_bar.grid_remove()
     
     def update_status(self, message):
         """更新状态信息"""
