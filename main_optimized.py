@@ -85,21 +85,45 @@ class ImageProcessor:
             try:
                 # 生成输出文件名
                 base_name = os.path.splitext(os.path.basename(file_path))[0]
-                output_filename = f"{base_name}_cropped.{self.output_format.lower()}"
+                
+                # 如果输出格式为"自动"，则使用原始文件格式
+                if self.output_format == "自动":
+                    # 提取原始文件格式
+                    original_ext = os.path.splitext(file_path)[1].lower()
+                    # 移除点号
+                    if original_ext.startswith('.'):
+                        original_ext = original_ext[1:]
+                    # 处理常见的扩展名映射
+                    format_mapping = {
+                        'jpg': 'jpg',
+                        'jpeg': 'jpg',
+                        'png': 'png',
+                        'bmp': 'bmp',
+                        'tiff': 'tiff',
+                        'tif': 'tiff'
+                    }
+                    # 获取输出格式
+                    output_ext = format_mapping.get(original_ext, 'jpg')
+                else:
+                    # 使用指定的输出格式
+                    output_ext = self.output_format.lower()
+                
+                # 生成输出文件名
+                output_filename = f"{base_name}_cropped.{output_ext}"
                 output_path = os.path.join(self.output_dir, output_filename)
                 
                 # 确保文件名唯一
                 counter = 1
                 while os.path.exists(output_path):
-                    output_filename = f"{base_name}_cropped_{counter}.{self.output_format.lower()}"
+                    output_filename = f"{base_name}_cropped_{counter}.{output_ext}"
                     output_path = os.path.join(self.output_dir, output_filename)
                     counter += 1
                 
                 # 根据单位选择裁剪方法
                 if self.crop_unit == '%':
-                    self.crop_image_by_percentage(file_path, output_path)
+                    self.crop_image_by_percentage(file_path, output_path, output_ext)
                 else:
-                    self.crop_image_by_pixels(file_path, output_path)
+                    self.crop_image_by_pixels(file_path, output_path, output_ext)
                 
                 results['success'] += 1
                 results['output_files'].append(output_path)
@@ -125,7 +149,7 @@ class ImageProcessor:
         if self.finish_callback:
             self.finish_callback(results)
     
-    def crop_image_by_percentage(self, input_path, output_path):
+    def crop_image_by_percentage(self, input_path, output_path, output_ext):
         """按百分比裁剪图片"""
         with Image.open(input_path) as img:
             width, height = img.size
@@ -149,12 +173,22 @@ class ImageProcessor:
             cropped_img = img.crop(crop_box)
             
             # 保存图片
-            if self.output_format.upper() == 'JPG':
+            if output_ext == 'jpg':
                 cropped_img.save(output_path, 'JPEG', quality=self.quality)
             else:
-                cropped_img.save(output_path, self.output_format.upper())
+                # 根据输出扩展名确定保存格式
+                format_mapping = {
+                    'png': 'PNG',
+                    'bmp': 'BMP',
+                    'tiff': 'TIFF'
+                }
+                save_format = format_mapping.get(output_ext, 'JPEG')
+                if save_format == 'JPEG':
+                    cropped_img.save(output_path, save_format, quality=self.quality)
+                else:
+                    cropped_img.save(output_path, save_format)
     
-    def crop_image_by_pixels(self, input_path, output_path):
+    def crop_image_by_pixels(self, input_path, output_path, output_ext):
         """按像素裁剪图片"""
         with Image.open(input_path) as img:
             width, height = img.size
@@ -178,10 +212,20 @@ class ImageProcessor:
             cropped_img = img.crop(crop_box)
             
             # 保存图片
-            if self.output_format.upper() == 'JPG':
+            if output_ext == 'jpg':
                 cropped_img.save(output_path, 'JPEG', quality=self.quality)
             else:
-                cropped_img.save(output_path, self.output_format.upper())
+                # 根据输出扩展名确定保存格式
+                format_mapping = {
+                    'png': 'PNG',
+                    'bmp': 'BMP',
+                    'tiff': 'TIFF'
+                }
+                save_format = format_mapping.get(output_ext, 'JPEG')
+                if save_format == 'JPEG':
+                    cropped_img.save(output_path, save_format, quality=self.quality)
+                else:
+                    cropped_img.save(output_path, save_format)
     
     def stop(self):
         """停止处理"""
@@ -265,9 +309,9 @@ class ImageCropperGUI:
         output_frame.columnconfigure(3, weight=1)
         
         ttk.Label(output_frame, text="输出格式:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
-        self.format_var = tk.StringVar(value=self.settings.get("output_format", "JPG"))
+        self.format_var = tk.StringVar(value=self.settings.get("output_format", "自动"))
         self.format_combo = ttk.Combobox(output_frame, textvariable=self.format_var, 
-                                        values=["JPG", "PNG", "BMP", "TIFF"], state="readonly", width=8)
+                                        values=["自动", "JPG", "PNG", "BMP", "TIFF"], state="readonly", width=8)
         self.format_combo.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
         
         ttk.Label(output_frame, text="质量:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
@@ -573,6 +617,10 @@ class ImageCropperGUI:
         # 绑定键盘快捷键
         self.preview_window.bind("<Left>", lambda e: self.preview_prev_image())
         self.preview_window.bind("<Right>", lambda e: self.preview_next_image())
+        
+        # 预览窗口提示标签
+        self.preview_tip_label = ttk.Label(self.preview_frame, text="", foreground="gray")
+        self.preview_tip_label.grid(row=3, column=0, sticky=tk.W+tk.E, pady=(10, 0))
     
     def _update_preview_content(self, file_path, file_index):
         """更新预览窗口内容"""
@@ -790,14 +838,36 @@ class ImageCropperGUI:
         if self.current_preview_index > 0:
             self.current_preview_index -= 1
             file_path = self.thumbnails[self.current_preview_index]["file_path"]
-            self.preview_image(file_path)
+            # 直接更新预览内容，避免重新获取索引
+            self._update_preview_content(file_path, self.current_preview_index)
+            # 清空提示
+            if hasattr(self, 'preview_tip_label'):
+                self.preview_tip_label.config(text="")
+        else:
+            # 已是第一张图片，显示提示
+            if hasattr(self, 'preview_tip_label'):
+                self.preview_tip_label.config(text="已是第一张图片")
+                self.preview_window.update_idletasks()
+                # 3秒后自动清除提示
+                self.root.after(3000, lambda: self.preview_tip_label.config(text=""))
     
     def preview_next_image(self):
         """预览下一张图片"""
         if self.current_preview_index < len(self.thumbnails) - 1:
             self.current_preview_index += 1
             file_path = self.thumbnails[self.current_preview_index]["file_path"]
-            self.preview_image(file_path)
+            # 直接更新预览内容，避免重新获取索引导致的无限循环
+            self._update_preview_content(file_path, self.current_preview_index)
+            # 清空提示
+            if hasattr(self, 'preview_tip_label'):
+                self.preview_tip_label.config(text="")
+        else:
+            # 已是最后一张图片，显示提示
+            if hasattr(self, 'preview_tip_label'):
+                self.preview_tip_label.config(text="已是最后一张图片")
+                self.preview_window.update_idletasks()
+                # 3秒后自动清除提示
+                self.root.after(3000, lambda: self.preview_tip_label.config(text=""))
     
     def on_canvas_scroll(self, event):
         """处理画布滚动事件"""
