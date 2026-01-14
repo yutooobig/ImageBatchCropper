@@ -23,11 +23,7 @@ class ConfigManager:
         if os.path.exists(CONFIG_FILE):
             try:
                 with open(CONFIG_FILE, 'r') as f:
-                    settings = json.load(f)
-                    # 删除可能存在的旧质量设置
-                    if "quality" in settings:
-                        del settings["quality"]
-                    return settings
+                    return json.load(f)
             except Exception as e:
                 print(f"加载配置失败: {e}")
         return {
@@ -39,7 +35,8 @@ class ConfigManager:
                 "left": 0,
                 "right": 0
             },
-            "output_format": "JPG"
+            "output_format": "JPG",
+            "quality": 90
         }
     
     @staticmethod
@@ -322,10 +319,10 @@ class ImageCropperGUI:
                  foreground=[("readonly", fg_color)],
                  arrowcolor=[("active", primary_color), ("disabled", "#999999")])
         
-        # 配置标签样式 - 使用系统默认字体
+        # 配置标签样式 - 使用更明显的字体和颜色
         style.configure("TLabel",
-                       font=(),  # 系统默认字体
-                       foreground=fg_color)
+                       font=('微软雅黑', 9),  # 使用更明显的字体
+                       foreground="#000000")  # 使用黑色文字，确保在任何主题下都清晰可见
         
         # 配置输入框样式 - 使用系统默认字体
         style.configure("TEntry",
