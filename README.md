@@ -1,6 +1,6 @@
 # ImageBatchCropper - 图片批量裁剪工具
 
-一个图片批量裁剪工具，支持多种裁剪方式和输出格式。
+一个功能强大、易用的图片批量裁剪工具，支持多种裁剪方式和输出格式，适用于各种图片处理场景。
 
 ## 功能特点
 
@@ -8,6 +8,8 @@
 - 📐 **灵活裁剪**：支持按百分比或像素进行裁剪
 - 🎨 **多种格式**：支持多种输出图片格式（JPG、PNG等）
 - 💾 **质量控制**：可调整输出图片质量
+- ⚙️ **配置保存**：自动保存用户配置，下次使用无需重新设置
+- 🖥️ **双界面支持**：传统Tkinter界面与现代pywebview界面可选
 - ⚡ **高效处理**：使用多线程加速图片处理
 
 ## 安装和依赖
@@ -52,11 +54,15 @@ python main_optimized.py
 
 ```
 ImageBatchCropper/
-├── main_optimized.py       # 主程序文件
-├── cropper_config.json     # 配置文件
-├── requirements.txt        # 依赖文件
-├── .gitignore              # Git忽略文件
-└── README.md               # 项目说明文档
+├── main_optimized.py           # 主程序文件
+├── cropper_config.json         # 配置文件
+├── requirements.txt            # 依赖文件
+├── .gitignore                  # Git忽略文件
+├── README.md                   # 项目说明文档
+├── pywebview_version.py        # pywebview版本测试脚本
+├── test_file_dialog.py         # 文件对话框测试脚本
+├── test_file_dialog_simple.py  # 简单文件对话框测试脚本
+└── test_pywebview.py           # pywebview基础测试脚本
 ```
 
 ## 配置说明
@@ -81,14 +87,15 @@ ImageBatchCropper/
 ## 技术栈
 
 - **Python 3.8+**：主要开发语言
-- **Tkinter**：图形用户界面
+- **Tkinter**：传统图形用户界面
+- **pywebview**：现代Web技术图形用户界面（可选）
 - **Pillow (PIL)**：图片处理库
 - **JSON**：配置文件处理
 - **多线程**：并发图片处理
 
 ## 许可证
 
-本项目采用 MIT 许可证，详见 LICENSE 文件。
+本项目采用 MIT 许可证，LICENSE 文件将在后续添加。
 
 ## 贡献
 
