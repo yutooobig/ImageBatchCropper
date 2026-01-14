@@ -446,30 +446,30 @@ class ImageCropperGUI:
         self.unit_combo.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
         self.unit_combo.bind("<<ComboboxSelected>>", self.on_unit_change)
         
-        # 上下左右裁剪参数
-        self.top_label = ttk.Label(self.crop_frame, text=f"上边裁剪({self.unit_var.get()}):")
-        self.top_label.grid(row=1, column=0, sticky=tk.W, padx=(0, 5), pady=(10, 5))
+        # 上下左右裁剪参数 - 简化版，使用更简单的布局
+        # 上边裁剪
+        ttk.Label(self.crop_frame, text="上边:", font=('微软雅黑', 9)).grid(row=1, column=0, sticky=tk.E, padx=(0, 5), pady=(10, 5))
         self.top_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("top", 0))
         self.top_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.top_var, width=10)
-        self.top_spin.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=(0, 20), pady=(10, 5))
+        self.top_spin.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=(0, 10), pady=(10, 5))
         
-        self.bottom_label = ttk.Label(self.crop_frame, text=f"下边裁剪({self.unit_var.get()}):")
-        self.bottom_label.grid(row=1, column=2, sticky=tk.W, padx=(0, 5), pady=(10, 5))
+        # 下边裁剪
+        ttk.Label(self.crop_frame, text="下边:", font=('微软雅黑', 9)).grid(row=1, column=2, sticky=tk.E, padx=(0, 5), pady=(10, 5))
         self.bottom_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("bottom", 0))
         self.bottom_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.bottom_var, width=10)
-        self.bottom_spin.grid(row=1, column=3, sticky=(tk.W, tk.E), pady=(10, 5))
+        self.bottom_spin.grid(row=1, column=3, sticky=(tk.W, tk.E), padx=(0, 10), pady=(10, 5))
         
-        self.left_label = ttk.Label(self.crop_frame, text=f"左边裁剪({self.unit_var.get()}):")
-        self.left_label.grid(row=2, column=0, sticky=tk.W, padx=(0, 5), pady=(5, 10))
+        # 左边裁剪
+        ttk.Label(self.crop_frame, text="左边:", font=('微软雅黑', 9)).grid(row=2, column=0, sticky=tk.E, padx=(0, 5), pady=(5, 10))
         self.left_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("left", 0))
         self.left_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.left_var, width=10)
-        self.left_spin.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(0, 20), pady=(5, 10))
+        self.left_spin.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(0, 10), pady=(5, 10))
         
-        self.right_label = ttk.Label(self.crop_frame, text=f"右边裁剪({self.unit_var.get()}):")
-        self.right_label.grid(row=2, column=2, sticky=tk.W, padx=(0, 5), pady=(5, 10))
+        # 右边裁剪
+        ttk.Label(self.crop_frame, text="右边:", font=('微软雅黑', 9)).grid(row=2, column=2, sticky=tk.E, padx=(0, 5), pady=(5, 10))
         self.right_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("right", 0))
         self.right_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.right_var, width=10)
-        self.right_spin.grid(row=2, column=3, sticky=(tk.W, tk.E), pady=(5, 10))
+        self.right_spin.grid(row=2, column=3, sticky=(tk.W, tk.E), padx=(0, 10), pady=(5, 10))
         
         # 根据当前单位设置spinbox范围
         self.update_spinbox_ranges()
@@ -1413,12 +1413,6 @@ class ImageCropperGUI:
     def on_unit_change(self, event):
         """处理裁剪单位切换"""
         unit = self.unit_var.get()
-        
-        # 更新标签文本
-        self.top_label.config(text=f"上边裁剪({unit}):")
-        self.bottom_label.config(text=f"下边裁剪({unit}):")
-        self.left_label.config(text=f"左边裁剪({unit}):")
-        self.right_label.config(text=f"右边裁剪({unit}):")
         
         # 更新Spinbox范围
         self.update_spinbox_ranges()
