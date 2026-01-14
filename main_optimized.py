@@ -1051,8 +1051,8 @@ class ImageCropperGUI:
             if hasattr(self, 'preview_tip_label'):
                 self.preview_tip_label.config(text="已是第一张图片")
                 self.preview_window.update_idletasks()
-                # 3秒后自动清除提示
-                self.root.after(3000, lambda: self.preview_tip_label.config(text=""))
+                # 3秒后自动清除提示，添加安全检查
+                self.root.after(3000, lambda: self._clear_preview_tip())
     
     def preview_next_image(self):
         """预览下一张图片"""
@@ -1069,8 +1069,19 @@ class ImageCropperGUI:
             if hasattr(self, 'preview_tip_label'):
                 self.preview_tip_label.config(text="已是最后一张图片")
                 self.preview_window.update_idletasks()
-                # 3秒后自动清除提示
-                self.root.after(3000, lambda: self.preview_tip_label.config(text=""))
+                # 3秒后自动清除提示，添加安全检查
+                self.root.after(3000, lambda: self._clear_preview_tip())
+    
+    def _clear_preview_tip(self):
+        """安全地清除预览提示文本"""
+        try:
+            # 检查预览窗口和标签是否存在且可见
+            if (hasattr(self, 'preview_window') and self.preview_window.winfo_exists() and
+                hasattr(self, 'preview_tip_label') and self.preview_tip_label.winfo_exists()):
+                self.preview_tip_label.config(text="")
+        except Exception as e:
+            # 忽略任何可能的错误
+            pass
     
     def on_canvas_scroll(self, event):
         """处理画布滚动事件"""
