@@ -268,88 +268,88 @@ class ImageCropperGUI:
         # 设置主题（Windows 10/11 风格）
         style.theme_use("clam")
         
-        # 主题色彩配置
-        primary_color = "#3498db"  # 蓝色
-        secondary_color = "#2ecc71"  # 绿色
-        accent_color = "#e74c3c"  # 红色
-        bg_color = "#f8f9fa"  # 浅灰
-        fg_color = "#2c3e50"  # 深灰
+        # 主题色彩配置 - 蓝白配色方案
+        primary_color = "#3498db"  # 主蓝色
+        secondary_color = "#2980b9"  # 深蓝色
+        accent_color = "#1e6f9e"  # 强调蓝色
+        bg_color = "#ffffff"  # 白色背景
+        fg_color = "#2c3e50"  # 深灰色文字
         
-        # 配置标签框架样式
+        # 配置标签框架样式 - 使用系统默认字体
         style.configure("TLabelFrame", 
                        borderwidth=2,
                        relief="ridge",
-                       font=("Segoe UI", 10, "bold"),
+                       font=(),  # 空元组表示系统默认字体
                        padding=12,
                        background=bg_color,
-                       foreground=fg_color)
+                       foreground=primary_color)
         style.configure("TLabelFrame.Label",
-                       font=("Segoe UI", 10, "bold"),
+                       font=(),  # 系统默认字体
                        foreground=primary_color)
         
-        # 配置按钮样式
+        # 配置按钮样式 - 使用系统默认字体
         style.configure("TButton",
-                       font=("Segoe UI", 9),
+                       font=(None, 9),  # 系统默认字体，指定大小
                        padding=(8, 4),
                        relief="flat",
-                       background="#e1e5e9",
-                       foreground=fg_color)
+                       background="#e8f4f8",  # 浅蓝色背景
+                       foreground=fg_color)  # 深灰色文字，确保可见
         style.map("TButton",
-                 background=[("active", primary_color), ("disabled", "#d9d9d9")],
+                 background=[("active", primary_color), ("disabled", "#e0e0e0")],
                  foreground=[("active", "white"), ("disabled", "#999999")],
                  relief=[("active", "groove")])
         
-        # 配置强调按钮样式
+        # 配置强调按钮样式 - 使用系统默认字体
         style.configure("Accent.TButton",
-                       font=("Segoe UI", 9, "bold"),
+                       font=(None, 9),  # 系统默认字体，指定大小
                        padding=(8, 4),
                        relief="flat",
                        background=primary_color,
                        foreground="white")
         style.map("Accent.TButton",
-                 background=[("active", "#2980b9"), ("disabled", "#d9d9d9")],
+                 background=[("active", secondary_color), ("disabled", "#e0e0e0")],
                  foreground=[("disabled", "#999999")],
                  relief=[("active", "groove")])
         
-        # 配置组合框样式
+        # 配置组合框样式 - 使用系统默认字体
         style.configure("TCombobox",
-                       font=("Segoe UI", 9),
+                       font=(),  # 系统默认字体
                        padding=4,
-                       background="white",
+                       background=bg_color,
                        foreground=fg_color)
         style.map("TCombobox",
-                 fieldbackground=[("readonly", "white")],
+                 fieldbackground=[("readonly", bg_color)],
                  foreground=[("readonly", fg_color)],
                  arrowcolor=[("active", primary_color), ("disabled", "#999999")])
         
-        # 配置标签样式
+        # 配置标签样式 - 使用系统默认字体
         style.configure("TLabel",
-                       font=("Segoe UI", 9),
+                       font=(),  # 系统默认字体
                        foreground=fg_color)
         
-        # 配置输入框样式
+        # 配置输入框样式 - 使用系统默认字体
         style.configure("TEntry",
-                       font=("Segoe UI", 9),
+                       font=(),  # 系统默认字体
                        padding=4,
-                       fieldbackground="white",
+                       fieldbackground=bg_color,
                        foreground=fg_color,
-                       bordercolor="#bdc3c7",
-                       lightcolor="#bdc3c7",
-                       darkcolor="#bdc3c7")
+                       bordercolor=primary_color,
+                       lightcolor=primary_color,
+                       darkcolor=primary_color)
         style.map("TEntry",
-                 fieldbackground=[("focus", "#f0f8ff")],
-                 bordercolor=[("focus", primary_color)],
-                 lightcolor=[("focus", primary_color)],
-                 darkcolor=[("focus", primary_color)])
+                 fieldbackground=[("focus", bg_color)],
+                 bordercolor=[("focus", secondary_color)],
+                 lightcolor=[("focus", secondary_color)],
+                 darkcolor=[("focus", secondary_color)])
         
-        # 配置旋转框样式
+        # 配置旋转框样式 - 使用系统默认字体
         style.configure("TSpinbox",
-                       font=("Segoe UI", 9),
+                       font=(),  # 系统默认字体
                        padding=4,
-                       background="white",
+                       background=bg_color,
                        foreground=fg_color)
         style.map("TSpinbox",
-                 fieldbackground=[("focus", "#f0f8ff")],
+                 fieldbackground=[("focus", bg_color)],
                  bordercolor=[("focus", primary_color)],
                  arrowcolor=[("active", primary_color), ("disabled", "#999999")])
         
@@ -357,49 +357,51 @@ class ImageCropperGUI:
         style.configure("TProgressbar",
                        thickness=12,
                        background=primary_color,
-                       troughcolor="#e0e0e0",
-                       bordercolor="#bdc3c7")
+                       troughcolor="#e8f4f8",
+                       bordercolor=primary_color)
         
         # 配置滚动条样式
         style.configure("Vertical.TScrollbar",
                        width=12,
-                       background="#e0e0e0",
-                       troughcolor="#f0f0f0",
-                       arrowcolor=fg_color)
+                       background="#e8f4f8",
+                       troughcolor=bg_color,
+                       arrowcolor=primary_color)
         style.configure("Horizontal.TScrollbar",
                        height=12,
-                       background="#e0e0e0",
-                       troughcolor="#f0f0f0",
-                       arrowcolor=fg_color)
+                       background="#e8f4f8",
+                       troughcolor=bg_color,
+                       arrowcolor=primary_color)
         style.map("Vertical.TScrollbar",
-                 background=[("active", primary_color), ("disabled", "#d9d9d9")],
+                 background=[("active", primary_color), ("disabled", "#e0e0e0")],
                  arrowcolor=[("active", "white"), ("disabled", "#999999")])
         style.map("Horizontal.TScrollbar",
-                 background=[("active", primary_color), ("disabled", "#d9d9d9")],
+                 background=[("active", primary_color), ("disabled", "#e0e0e0")],
                  arrowcolor=[("active", "white"), ("disabled", "#999999")])
         
         # 配置分隔线样式
         style.configure("TSeparator",
                        background=primary_color)
         
-        # 预览窗口样式
+        # 预览窗口样式 - 使用系统默认字体
         style.configure("PreviewFrame.TLabelFrame",
                        borderwidth=2,
                        relief="ridge",
-                       font=("Segoe UI", 10, "bold"),
-                       padding=12)
+                       font=(),  # 系统默认字体
+                       padding=12,
+                       background=bg_color)
         style.configure("PreviewFrame.TLabelFrame.Label",
-                       font=("Segoe UI", 10, "bold"),
+                       font=(),  # 系统默认字体
                        foreground=primary_color)
         
         style.configure("InfoFrame.TLabelFrame",
                        borderwidth=2,
                        relief="groove",
-                       font=("Segoe UI", 10, "bold"),
-                       padding=12)
+                       font=(),  # 系统默认字体
+                       padding=12,
+                       background=bg_color)
         style.configure("InfoFrame.TLabelFrame.Label",
-                       font=("Segoe UI", 10, "bold"),
-                       foreground=secondary_color)
+                       font=(),  # 系统默认字体
+                       foreground=primary_color)
         
         # 输出设置框架
         output_frame = ttk.LabelFrame(main_frame, text="输出设置", padding="10")

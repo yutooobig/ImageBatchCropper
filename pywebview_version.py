@@ -348,8 +348,8 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: #2c3e50;
             line-height: 1.6;
             min-height: 100vh;
@@ -369,27 +369,28 @@ HTML_CONTENT = """<!DOCTYPE html>
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        /* 卡片样式 */
+        /* 卡片样式 - 蓝白配色 */
         .card {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
             padding: 25px;
             margin-bottom: 25px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e8f4f8;
         }
         
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
         }
         
-        /* 标题样式 */
+        /* 标题样式 - 蓝白配色 */
         .section-title {
             color: #3498db;
             margin-bottom: 20px;
             font-size: 1.5em;
-            border-bottom: 2px solid #ecf0f1;
+            border-bottom: 2px solid #e8f4f8;
             padding-bottom: 10px;
         }
         
@@ -416,17 +417,18 @@ HTML_CONTENT = """<!DOCTYPE html>
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #555;
+            color: #2c3e50;
             font-size: 0.95em;
         }
         
         input[type="number"], select, input[type="text"] {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e1e8ed;
+            border: 2px solid #e8f4f8;
             border-radius: 8px;
             font-size: 14px;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: white;
         }
         
         input[type="number"]:focus, select:focus, input[type="text"]:focus {
@@ -435,7 +437,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         
-        /* 按钮样式 */
+        /* 按钮样式 - 蓝白配色 */
         button {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
@@ -462,19 +464,21 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         
         button:disabled {
-            background: #bdc3c7;
+            background: #e8f4f8;
+            color: #95a5a6;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
         
-        /* 特殊按钮样式 */
+        /* 特殊按钮样式 - 蓝白配色 */
         .btn-secondary {
-            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            background: linear-gradient(135deg, #e8f4f8 0%, #d5e8f3 100%);
+            color: #3498db;
         }
         
         .btn-secondary:hover {
-            background: linear-gradient(135deg, #7f8c8d 0%, #6c7a89 100%);
+            background: linear-gradient(135deg, #d5e8f3 0%, #c2daeb 100%);
         }
         
         .btn-danger {
@@ -517,24 +521,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         
         .thumbnail {
-            border: 2px solid #e1e8ed;
+            border: 2px solid #e8f4f8;
             border-radius: 8px;
             padding: 15px;
             text-align: center;
             transition: all 0.3s ease;
-            background: #f8f9fa;
+            background: white;
         }
         
         .thumbnail:hover {
             border-color: #3498db;
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.2);
         }
         
         .thumbnail .filename {
             font-size: 13px;
             font-weight: 600;
-            color: #555;
+            color: #2c3e50;
             margin-bottom: 5px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -543,7 +547,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         
         .thumbnail .file-info {
             font-size: 11px;
-            color: #95a5a6;
+            color: #7f8c8d;
         }
         
         /* 控制按钮区域 */
@@ -556,30 +560,31 @@ HTML_CONTENT = """<!DOCTYPE html>
             flex-wrap: wrap;
         }
         
-        /* 状态消息 */
+        /* 状态消息 - 蓝白配色 */
         .status {
             text-align: center;
             padding: 15px;
-            background: linear-gradient(135deg, #e8f4f8 0%, #d5e8f3 100%);
+            background: white;
             border-radius: 8px;
-            color: #2c3e50;
+            color: #3498db;
             font-weight: 600;
             margin: 20px 0;
-            border-left: 5px solid #3498db;
+            border: 2px solid #e8f4f8;
         }
         
-        /* 结果区域 */
+        /* 结果区域 - 蓝白配色 */
         .results {
             padding: 20px;
-            background: linear-gradient(135deg, #e8f9e9 0%, #d5f4e6 100%);
+            background: white;
             border-radius: 8px;
             color: #2c3e50;
             margin: 20px 0;
-            border-left: 5px solid #27ae60;
+            border-left: 5px solid #3498db;
+            border: 2px solid #e8f4f8;
         }
         
         .results h3 {
-            color: #27ae60;
+            color: #3498db;
             margin-bottom: 15px;
         }
         
@@ -591,7 +596,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         
         .results li {
             padding: 8px 0;
-            border-bottom: 1px solid #ecf0f1;
+            border-bottom: 1px solid #e8f4f8;
         }
         
         /* 响应式设计 */
