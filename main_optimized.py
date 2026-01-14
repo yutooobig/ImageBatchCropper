@@ -1367,6 +1367,8 @@ class ImageCropperGUI:
                             width, height = img.size
                             size_label = ttk.Label(thumb_container, text=f"{width}x{height}px", anchor=tk.CENTER, font=("Segoe UI", 8), foreground="#888")
                             size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
+                            # 绑定鼠标滚轮事件，确保在平铺模式下图片规格信息处也能滚动
+                            size_label.bind("<MouseWheel>", self.on_canvas_scroll)
                     except:
                         pass
                     
