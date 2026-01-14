@@ -3,9 +3,9 @@
   "crop_unit": "%",
   "crop_settings": {
     "top": 0,
-    "bottom": 0,
+    "bottom": 5,
     "left": 0,
     "right": 0
   },
-  "output_format": "JPG"
+  "output_format": "\u81ea\u52a8"
 }
