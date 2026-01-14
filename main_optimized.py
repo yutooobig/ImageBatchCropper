@@ -442,28 +442,28 @@ class ImageCropperGUI:
         
         # 上下左右裁剪参数
         self.top_label = ttk.Label(self.crop_frame, text=f"上边裁剪({self.unit_var.get()}):")
-        self.top_label.grid(row=1, column=0, sticky=tk.W, padx=(0, 5))
+        self.top_label.grid(row=1, column=0, sticky=tk.W, padx=(0, 5), pady=(10, 5))
         self.top_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("top", 0))
         self.top_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.top_var, width=10)
-        self.top_spin.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=(0, 20))
+        self.top_spin.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=(0, 20), pady=(10, 5))
         
         self.bottom_label = ttk.Label(self.crop_frame, text=f"下边裁剪({self.unit_var.get()}):")
-        self.bottom_label.grid(row=1, column=2, sticky=tk.W, padx=(0, 5))
+        self.bottom_label.grid(row=1, column=2, sticky=tk.W, padx=(0, 5), pady=(10, 5))
         self.bottom_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("bottom", 0))
         self.bottom_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.bottom_var, width=10)
-        self.bottom_spin.grid(row=1, column=3, sticky=(tk.W, tk.E))
+        self.bottom_spin.grid(row=1, column=3, sticky=(tk.W, tk.E), pady=(10, 5))
         
         self.left_label = ttk.Label(self.crop_frame, text=f"左边裁剪({self.unit_var.get()}):")
-        self.left_label.grid(row=2, column=0, sticky=tk.W, padx=(0, 5))
+        self.left_label.grid(row=2, column=0, sticky=tk.W, padx=(0, 5), pady=(5, 10))
         self.left_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("left", 0))
         self.left_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.left_var, width=10)
-        self.left_spin.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(0, 20))
+        self.left_spin.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(0, 20), pady=(5, 10))
         
         self.right_label = ttk.Label(self.crop_frame, text=f"右边裁剪({self.unit_var.get()}):")
-        self.right_label.grid(row=2, column=2, sticky=tk.W, padx=(0, 5))
+        self.right_label.grid(row=2, column=2, sticky=tk.W, padx=(0, 5), pady=(5, 10))
         self.right_var = tk.IntVar(value=self.settings.get("crop_settings", {}).get("right", 0))
         self.right_spin = ttk.Spinbox(self.crop_frame, from_=0, to=100, textvariable=self.right_var, width=10)
-        self.right_spin.grid(row=2, column=3, sticky=(tk.W, tk.E))
+        self.right_spin.grid(row=2, column=3, sticky=(tk.W, tk.E), pady=(5, 10))
         
         # 根据当前单位设置spinbox范围
         self.update_spinbox_ranges()
