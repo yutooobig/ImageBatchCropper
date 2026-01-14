@@ -472,12 +472,25 @@ class ImageCropperGUI:
             # 第一次预览时创建窗口，后续复用窗口
             if not self.preview_window or not self.preview_window.winfo_exists():
                 self._create_preview_window()
-            
-            # 更新窗口内容
-            self._update_preview_content(file_path, file_index)
+                # 存储当前要预览的文件路径和索引
+                self._pending_preview_file = file_path
+                self._pending_preview_index = file_index
+                # 窗口创建完成后，等待100ms让窗口完成渲染，然后更新内容
+                self.root.after(100, self._show_pending_preview)
+            else:
+                # 窗口已存在，直接更新内容
+                self._update_preview_content(file_path, file_index)
             
         except Exception as e:
             messagebox.showerror("预览错误", f"无法预览图片: {e}")
+    
+    def _show_pending_preview(self):
+        """显示等待中的预览图片"""
+        if hasattr(self, '_pending_preview_file') and hasattr(self, '_pending_preview_index'):
+            self._update_preview_content(self._pending_preview_file, self._pending_preview_index)
+            # 清除等待状态
+            delattr(self, '_pending_preview_file')
+            delattr(self, '_pending_preview_index')
     
     def _create_preview_window(self):
         """创建预览窗口"""
