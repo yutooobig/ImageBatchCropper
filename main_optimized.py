@@ -643,7 +643,7 @@ class ImageCropperGUI:
         width, height = self.current_preview_image.size
         self.current_preview_size = (width, height)
         
-        # 计算合适的初始缩放比例，确保图片完全显示在画布内
+        # 计算合适的初始缩放比例，确保图片完全显示在画布内，优化大尺寸图片处理
         
         # 尝试更新组件，确保获取到准确的尺寸
         self.preview_window.update_idletasks()
@@ -663,27 +663,31 @@ class ImageCropperGUI:
             canvas_available_width = default_canvas_width
             canvas_available_height = default_canvas_height
         else:
-            # 画布可用宽度和高度（减去滚动条空间）
-            canvas_available_width = max(1, frame_width - 20)  # 20px for scrollbar
-            canvas_available_height = max(1, frame_height - 20)  # 20px for scrollbar
+            # 考虑框架内边距和标题栏，估算画布可用空间
+            # left_frame 有 10px 内边距（padding），标题栏高度约 20px
+            # 减去 40px 作为内边距和标题栏空间，再减去 20px 作为滚动条空间
+            canvas_available_width = max(1, frame_width - 60)  # 60px for padding, title bar, and scrollbar
+            canvas_available_height = max(1, frame_height - 60)  # 60px for padding, title bar, and scrollbar
         
         # 确保可用空间有一个合理的最小值
         canvas_available_width = max(canvas_available_width, 400)
         canvas_available_height = max(canvas_available_height, 300)
         
-        # 计算缩放比例，确保图片完全显示
-        if width > canvas_available_width or height > canvas_available_height:
-            # 计算宽度和高度的缩放比例
-            width_scale = canvas_available_width / width
-            height_scale = canvas_available_height / height
-            # 取较小的缩放比例，确保图片完全显示
-            self.current_zoom_scale = min(width_scale, height_scale, 1.0)  # 最大缩放比例为1.0
+        # 计算缩放比例，确保图片完全显示在可用空间内
+        # 计算宽度和高度的缩放比例，确保图片完全显示
+        width_scale = canvas_available_width / width
+        height_scale = canvas_available_height / height
+        
+        # 对于大尺寸图片（宽度或高度超过2000px），降低初始缩放比例
+        if width > 2000 or height > 2000:
+            # 大尺寸图片使用更小的初始缩放比例
+            self.current_zoom_scale = min(width_scale, height_scale, 0.15)  # 最大缩放比例为0.15
         else:
-            # 图片较小，使用实际大小
-            self.current_zoom_scale = 1.0
+            # 普通尺寸图片使用正常缩放比例
+            self.current_zoom_scale = min(width_scale, height_scale, 1.0)  # 最大缩放比例为1.0
         
         # 确保缩放比例不会导致零或负尺寸，同时设置一个合理的最小缩放比例
-        self.current_zoom_scale = max(self.current_zoom_scale, 0.3)  # 最小缩放比例为0.3，避免图片显示过小
+        self.current_zoom_scale = max(self.current_zoom_scale, 0.1)  # 最小缩放比例为0.1，适用于超大图片
         
         # 显示原图和裁剪预览
         self._show_preview_images()
@@ -732,8 +736,23 @@ class ImageCropperGUI:
         scaled_width = max(1, int(width * self.current_zoom_scale))
         scaled_height = max(1, int(height * self.current_zoom_scale))
         
+        # 限制缩放后的最大尺寸，避免占用过多资源
+        # 对于大尺寸图片，限制最大尺寸为2000x2000
+        max_display_size = 2000
+        if scaled_width > max_display_size or scaled_height > max_display_size:
+            # 计算新的缩放比例，确保不超过最大尺寸
+            display_scale = min(max_display_size / scaled_width, max_display_size / scaled_height)
+            scaled_width = max(1, int(scaled_width * display_scale))
+            scaled_height = max(1, int(scaled_height * display_scale))
+        
         # 显示原图，确保尺寸有效
-        img_preview = img.resize((scaled_width, scaled_height), Image.LANCZOS)
+        # 对于大尺寸图片，使用更高效的缩放算法
+        if width > 2000 or height > 2000:
+            # 大尺寸图片使用更快的缩放算法
+            img_preview = img.resize((scaled_width, scaled_height), Image.BILINEAR)
+        else:
+            # 普通尺寸图片使用高质量缩放算法
+            img_preview = img.resize((scaled_width, scaled_height), Image.LANCZOS)
         img_tk = ImageTk.PhotoImage(img_preview)
         
         # 清空原有控件
@@ -749,7 +768,12 @@ class ImageCropperGUI:
         left_vscroll.pack(side=tk.RIGHT, fill=tk.Y)
         
         # 画布大小固定，图片在内部滚动
-        left_canvas = tk.Canvas(self.left_frame, width=800, height=600, bg="white",
+        # 动态设置画布大小，根据框架可用空间
+        self.left_frame.update_idletasks()
+        left_canvas_width = max(400, self.left_frame.winfo_width() - 40)  # 40px for padding and scrollbar
+        left_canvas_height = max(300, self.left_frame.winfo_height() - 40)  # 40px for padding and scrollbar
+        
+        left_canvas = tk.Canvas(self.left_frame, width=left_canvas_width, height=left_canvas_height, bg="white",
                                xscrollcommand=left_hscroll.set, yscrollcommand=left_vscroll.set)
         left_canvas.pack(fill=tk.BOTH, expand=True)
         
@@ -778,7 +802,21 @@ class ImageCropperGUI:
             crop_scaled_width = max(1, int(new_width * self.current_zoom_scale))
             crop_scaled_height = max(1, int(new_height * self.current_zoom_scale))
             
-            cropped_preview = cropped_img.resize((crop_scaled_width, crop_scaled_height), Image.LANCZOS)
+            # 限制裁剪预览的最大尺寸，避免占用过多资源
+            max_display_size = 2000
+            if crop_scaled_width > max_display_size or crop_scaled_height > max_display_size:
+                # 计算新的缩放比例，确保不超过最大尺寸
+                display_scale = min(max_display_size / crop_scaled_width, max_display_size / crop_scaled_height)
+                crop_scaled_width = max(1, int(crop_scaled_width * display_scale))
+                crop_scaled_height = max(1, int(crop_scaled_height * display_scale))
+            
+            # 对于大尺寸图片，使用更高效的缩放算法
+            if width > 2000 or height > 2000:
+                # 大尺寸图片使用更快的缩放算法
+                cropped_preview = cropped_img.resize((crop_scaled_width, crop_scaled_height), Image.BILINEAR)
+            else:
+                # 普通尺寸图片使用高质量缩放算法
+                cropped_preview = cropped_img.resize((crop_scaled_width, crop_scaled_height), Image.LANCZOS)
             cropped_tk = ImageTk.PhotoImage(cropped_preview)
             
             # 清空原有控件
@@ -793,8 +831,12 @@ class ImageCropperGUI:
             right_vscroll = ttk.Scrollbar(self.right_frame, orient=tk.VERTICAL)
             right_vscroll.pack(side=tk.RIGHT, fill=tk.Y)
             
-            # 画布大小固定，图片在内部滚动
-            right_canvas = tk.Canvas(self.right_frame, width=800, height=600, bg="white",
+            # 动态设置画布大小，根据框架可用空间
+            self.right_frame.update_idletasks()
+            right_canvas_width = max(400, self.right_frame.winfo_width() - 40)  # 40px for padding and scrollbar
+            right_canvas_height = max(300, self.right_frame.winfo_height() - 40)  # 40px for padding and scrollbar
+            
+            right_canvas = tk.Canvas(self.right_frame, width=right_canvas_width, height=right_canvas_height, bg="white",
                                    xscrollcommand=right_hscroll.set, yscrollcommand=right_vscroll.set)
             right_canvas.pack(fill=tk.BOTH, expand=True)
             
