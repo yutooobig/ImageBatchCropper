@@ -427,10 +427,16 @@ class ImageCropperGUI:
         
         # 裁剪参数框架
         self.crop_frame = ttk.LabelFrame(main_frame, text="裁剪参数", padding="10")
-        self.crop_frame.grid(row=0, column=1, sticky=(tk.W, tk.E), pady=(0, 10))
+        self.crop_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
         self.crop_frame.columnconfigure(1, weight=1)
         self.crop_frame.columnconfigure(3, weight=1)
         self.crop_frame.columnconfigure(5, weight=1)
+        # 添加行配置，确保有足够空间显示所有控件
+        self.crop_frame.grid_rowconfigure(0, weight=0)
+        self.crop_frame.grid_rowconfigure(1, weight=0)
+        self.crop_frame.grid_rowconfigure(2, weight=0)
+        # 添加空行，使裁剪参数框架高度与输出设置框架对齐
+        self.crop_frame.grid_rowconfigure(3, weight=1)
         
         # 裁剪单位选择
         ttk.Label(self.crop_frame, text="裁剪单位:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
