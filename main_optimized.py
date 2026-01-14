@@ -709,6 +709,7 @@ class ImageCropperGUI:
         self.nav_frame.columnconfigure(0, weight=1)
         self.nav_frame.columnconfigure(1, weight=1)
         self.nav_frame.columnconfigure(2, weight=1)
+        self.nav_frame.columnconfigure(3, weight=0)  # 剔除按钮列
         
         # 上一张按钮，使用强调样式
         self.prev_btn = ttk.Button(self.nav_frame, text="上一张 (←)", command=self.preview_prev_image, style="Accent.TButton")
@@ -733,6 +734,10 @@ class ImageCropperGUI:
         # 下一张按钮，使用强调样式
         self.next_btn = ttk.Button(self.nav_frame, text="下一张 (→)", command=self.preview_next_image, style="Accent.TButton")
         self.next_btn.grid(row=0, column=2, sticky=tk.E)
+        
+        # 剔除按钮，使用醒目的红色样式
+        self.exclude_btn = ttk.Button(self.nav_frame, text="剔除 (Delete)", command=self.exclude_current_image, style="TButton")
+        self.exclude_btn.grid(row=0, column=3, sticky=tk.E, padx=(10, 0))
         
         # 左右分栏容器
         self.content_frame = ttk.Frame(self.preview_frame)
@@ -773,6 +778,7 @@ class ImageCropperGUI:
         # 绑定键盘快捷键
         self.preview_window.bind("<Left>", lambda e: self.preview_prev_image())
         self.preview_window.bind("<Right>", lambda e: self.preview_next_image())
+        self.preview_window.bind("<Delete>", lambda e: self.exclude_current_image())
         self.preview_window.bind("<Escape>", lambda e: self.preview_window.destroy())  # 按ESC关闭预览窗口
         
         # 预览窗口提示标签，使用现代样式
@@ -1071,6 +1077,44 @@ class ImageCropperGUI:
                 self.preview_window.update_idletasks()
                 # 3秒后自动清除提示，添加安全检查
                 self.root.after(3000, lambda: self._clear_preview_tip())
+    
+    def exclude_current_image(self):
+        """剔除当前预览的图片"""
+        if hasattr(self, 'current_preview_index') and self.current_preview_index >= 0 and self.thumbnails:
+            # 获取当前图片的信息
+            current_file = self.thumbnails[self.current_preview_index]
+            file_path = current_file["file_path"]
+            filename = os.path.basename(file_path)
+            
+            # 从列表中移除图片
+            self.thumbnails.pop(self.current_preview_index)
+            current_file["container"].destroy()
+            if current_file.get("separator"):
+                current_file["separator"].destroy()
+            
+            # 更新滚动区域
+            self.thumbnail_frame.update_idletasks()
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            
+            # 更新状态
+            self.update_status(f"已剔除图片: {filename}")
+            
+            # 检查是否还有图片
+            if self.thumbnails:
+                # 调整当前预览索引
+                if self.current_preview_index >= len(self.thumbnails):
+                    self.current_preview_index = len(self.thumbnails) - 1
+                
+                # 获取新的当前图片
+                new_file = self.thumbnails[self.current_preview_index]
+                new_file_path = new_file["file_path"]
+                
+                # 更新预览内容
+                self._update_preview_content(new_file_path, self.current_preview_index)
+            else:
+                # 没有图片了，关闭预览窗口
+                self.preview_window.destroy()
+                self.update_status("所有图片已剔除或处理完成")
     
     def _clear_preview_tip(self):
         """安全地清除预览提示文本"""
