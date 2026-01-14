@@ -3,6 +3,7 @@
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+from ttkbootstrap import Style
 import os
 import threading
 import json
@@ -239,15 +240,12 @@ class ImageCropperGUI:
     
     def init_ui(self):
         """初始化界面"""
-        self.root.title("图片批量裁剪工具 v3.0 (增强版)")
-        self.root.geometry("850x750")
-        self.root.minsize(750, 650)
+        self.root.title("图片批量裁剪工具 v3.0")
+        self.root.geometry("900x650")
+        self.root.minsize(750, 500)
         
         # 设置窗口图标（如果有）
         # self.root.iconbitmap("icon.ico")
-        
-        # 设置窗口背景色
-        self.root.configure(bg="#f8f9fa")
         
         # 创建主框架
         main_frame = ttk.Frame(self.root, padding="12")
@@ -258,147 +256,6 @@ class ImageCropperGUI:
         self.root.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
-        
-        # 配置ttk样式
-        style = ttk.Style()
-        
-        # 设置主题（Windows 10/11 风格）
-        style.theme_use("clam")
-        
-        # 主题色彩配置 - 蓝白配色方案
-        primary_color = "#3498db"  # 主蓝色
-        secondary_color = "#2980b9"  # 深蓝色
-        accent_color = "#1e6f9e"  # 强调蓝色
-        bg_color = "#ffffff"  # 白色背景
-        fg_color = "#2c3e50"  # 深灰色文字
-        
-        # 配置标签框架样式 - 使用系统默认字体
-        style.configure("TLabelFrame", 
-                       borderwidth=2,
-                       relief="ridge",
-                       font=(),  # 空元组表示系统默认字体
-                       padding=12,
-                       background=bg_color,
-                       foreground=primary_color)
-        style.configure("TLabelFrame.Label",
-                       font=(),  # 系统默认字体
-                       foreground=primary_color)
-        
-        # 配置按钮样式 - 使用系统默认字体
-        style.configure("TButton",
-                       font=(None, 9),  # 系统默认字体，指定大小
-                       padding=(8, 4),
-                       relief="flat",
-                       background="#e8f4f8",  # 浅蓝色背景
-                       foreground=fg_color)  # 深灰色文字，确保可见
-        style.map("TButton",
-                 background=[("active", primary_color), ("disabled", "#e0e0e0")],
-                 foreground=[("active", "white"), ("disabled", "#999999")],
-                 relief=[("active", "groove")])
-        
-        # 配置强调按钮样式 - 使用系统默认字体
-        style.configure("Accent.TButton",
-                       font=(None, 9),  # 系统默认字体，指定大小
-                       padding=(8, 4),
-                       relief="flat",
-                       background=primary_color,
-                       foreground="white")
-        style.map("Accent.TButton",
-                 background=[("active", secondary_color), ("disabled", "#e0e0e0")],
-                 foreground=[("disabled", "#999999")],
-                 relief=[("active", "groove")])
-        
-        # 配置组合框样式 - 使用系统默认字体
-        style.configure("TCombobox",
-                       font=(),  # 系统默认字体
-                       padding=4,
-                       background=bg_color,
-                       foreground=fg_color)
-        style.map("TCombobox",
-                 fieldbackground=[("readonly", bg_color)],
-                 foreground=[("readonly", fg_color)],
-                 arrowcolor=[("active", primary_color), ("disabled", "#999999")])
-        
-        # 配置标签样式 - 使用更明显的字体和颜色
-        style.configure("TLabel",
-                       font=('微软雅黑', 9),  # 使用更明显的字体
-                       foreground="#000000")  # 使用黑色文字，确保在任何主题下都清晰可见
-        
-        # 配置输入框样式 - 使用系统默认字体
-        style.configure("TEntry",
-                       font=(),  # 系统默认字体
-                       padding=4,
-                       fieldbackground=bg_color,
-                       foreground=fg_color,
-                       bordercolor=primary_color,
-                       lightcolor=primary_color,
-                       darkcolor=primary_color)
-        style.map("TEntry",
-                 fieldbackground=[("focus", bg_color)],
-                 bordercolor=[("focus", secondary_color)],
-                 lightcolor=[("focus", secondary_color)],
-                 darkcolor=[("focus", secondary_color)])
-        
-        # 配置旋转框样式 - 使用系统默认字体
-        style.configure("TSpinbox",
-                       font=(),  # 系统默认字体
-                       padding=4,
-                       background=bg_color,
-                       foreground=fg_color)
-        style.map("TSpinbox",
-                 fieldbackground=[("focus", bg_color)],
-                 bordercolor=[("focus", primary_color)],
-                 arrowcolor=[("active", primary_color), ("disabled", "#999999")])
-        
-        # 配置进度条样式
-        style.configure("TProgressbar",
-                       thickness=12,
-                       background=primary_color,
-                       troughcolor="#e8f4f8",
-                       bordercolor=primary_color)
-        
-        # 配置滚动条样式
-        style.configure("Vertical.TScrollbar",
-                       width=12,
-                       background="#e8f4f8",
-                       troughcolor=bg_color,
-                       arrowcolor=primary_color)
-        style.configure("Horizontal.TScrollbar",
-                       height=12,
-                       background="#e8f4f8",
-                       troughcolor=bg_color,
-                       arrowcolor=primary_color)
-        style.map("Vertical.TScrollbar",
-                 background=[("active", primary_color), ("disabled", "#e0e0e0")],
-                 arrowcolor=[("active", "white"), ("disabled", "#999999")])
-        style.map("Horizontal.TScrollbar",
-                 background=[("active", primary_color), ("disabled", "#e0e0e0")],
-                 arrowcolor=[("active", "white"), ("disabled", "#999999")])
-        
-        # 配置分隔线样式
-        style.configure("TSeparator",
-                       background=primary_color)
-        
-        # 预览窗口样式 - 使用系统默认字体
-        style.configure("PreviewFrame.TLabelFrame",
-                       borderwidth=2,
-                       relief="ridge",
-                       font=(),  # 系统默认字体
-                       padding=12,
-                       background=bg_color)
-        style.configure("PreviewFrame.TLabelFrame.Label",
-                       font=(),  # 系统默认字体
-                       foreground=primary_color)
-        
-        style.configure("InfoFrame.TLabelFrame",
-                       borderwidth=2,
-                       relief="groove",
-                       font=(),  # 系统默认字体
-                       padding=12,
-                       background=bg_color)
-        style.configure("InfoFrame.TLabelFrame.Label",
-                       font=(),  # 系统默认字体
-                       foreground=primary_color)
         
         # 输出设置框架
         output_frame = ttk.LabelFrame(main_frame, text="输出设置", padding="10")
@@ -472,7 +329,7 @@ class ImageCropperGUI:
         self.update_spinbox_ranges()
         
         # 文件列表框架
-        file_frame = ttk.LabelFrame(main_frame, text="待处理列表 (双击添加文件，点击预览)", padding="10")
+        file_frame = ttk.LabelFrame(main_frame, text="待处理列表 (点击预览)", padding="10")
         file_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
         file_frame.columnconfigure(0, weight=1)
         file_frame.rowconfigure(1, weight=1)
@@ -712,7 +569,7 @@ class ImageCropperGUI:
         self.nav_frame.columnconfigure(3, weight=0)  # 剔除按钮列
         
         # 上一张按钮，使用强调样式
-        self.prev_btn = ttk.Button(self.nav_frame, text="上一张 (←)", command=self.preview_prev_image, style="Accent.TButton")
+        self.prev_btn = ttk.Button(self.nav_frame, text="上一张 (←)", command=self.preview_prev_image, style="primary.TButton")
         self.prev_btn.grid(row=0, column=0, sticky=tk.W)
         
         # 缩放控制按钮组，居中显示
@@ -732,11 +589,11 @@ class ImageCropperGUI:
         self.reset_zoom_btn.pack(side=tk.LEFT)
         
         # 下一张按钮，使用强调样式
-        self.next_btn = ttk.Button(self.nav_frame, text="下一张 (→)", command=self.preview_next_image, style="Accent.TButton")
+        self.next_btn = ttk.Button(self.nav_frame, text="下一张 (→)", command=self.preview_next_image, style="primary.TButton")
         self.next_btn.grid(row=0, column=2, sticky=tk.E)
         
         # 剔除按钮，使用醒目的红色样式
-        self.exclude_btn = ttk.Button(self.nav_frame, text="剔除 (Delete)", command=self.exclude_current_image, style="TButton")
+        self.exclude_btn = ttk.Button(self.nav_frame, text="剔除 (Delete)", command=self.exclude_current_image, style="danger.TButton")
         self.exclude_btn.grid(row=0, column=3, sticky=tk.E, padx=(10, 0))
         
         # 左右分栏容器
@@ -769,10 +626,10 @@ class ImageCropperGUI:
         self.info_frame.columnconfigure(1, weight=1)
         
         # 创建空的信息标签，使用换行显示，避免过长文本
-        self.original_size_label = ttk.Label(self.info_frame, wraplength=400, font=("Segoe UI", 10), foreground="#2c3e50")
+        self.original_size_label = ttk.Label(self.info_frame, wraplength=400, font=("微软雅黑", 10), foreground="#2c3e50")
         self.original_size_label.grid(row=0, column=0, sticky=tk.W, padx=(0, 20))
         
-        self.crop_params_label = ttk.Label(self.info_frame, wraplength=600, font=("Segoe UI", 10), foreground="#2c3e50")
+        self.crop_params_label = ttk.Label(self.info_frame, wraplength=600, font=("微软雅黑", 10), foreground="#2c3e50")
         self.crop_params_label.grid(row=0, column=1, sticky=(tk.W, tk.E))
         
         # 绑定键盘快捷键
@@ -782,11 +639,11 @@ class ImageCropperGUI:
         self.preview_window.bind("<Escape>", lambda e: self.preview_window.destroy())  # 按ESC关闭预览窗口
         
         # 预览窗口提示标签，使用现代样式
-        self.preview_tip_label = ttk.Label(self.preview_frame, text="", foreground="#3498db", font=("Segoe UI", 10, "italic"))
+        self.preview_tip_label = ttk.Label(self.preview_frame, text="", foreground="#3498db", font=("微软雅黑", 10, "italic"))
         self.preview_tip_label.grid(row=3, column=0, sticky=tk.W+tk.E, pady=(10, 0))
         
         # 添加快捷键提示
-        self.shortcut_label = ttk.Label(self.preview_frame, text="快捷键: ← 上一张 | → 下一张 | ESC 关闭", foreground="gray", font=("Segoe UI", 8))
+        self.shortcut_label = ttk.Label(self.preview_frame, text="快捷键: ← 上一张 | → 下一张 | ESC 关闭", foreground="gray", font=("微软雅黑", 8))
         self.shortcut_label.grid(row=4, column=0, sticky=tk.E, pady=(5, 0))
     
     def _update_preview_content(self, file_path, file_index):
@@ -1164,11 +1021,11 @@ class ImageCropperGUI:
         self.current_view_mode = mode
         # 更新按钮状态
         if mode == "list":
-            self.list_mode_btn.config(style="Accent.TButton")
-            self.tile_mode_btn.config(style="TButton")
+            self.list_mode_btn.config(style="primary.TButton")
+            self.tile_mode_btn.config(style="outline.TButton")
         else:
-            self.list_mode_btn.config(style="TButton")
-            self.tile_mode_btn.config(style="Accent.TButton")
+            self.list_mode_btn.config(style="outline.TButton")
+            self.tile_mode_btn.config(style="primary.TButton")
         
         # 重新渲染缩略图
         self._redraw_thumbnails()
@@ -1271,8 +1128,8 @@ class ImageCropperGUI:
                 except Exception as e:
                     # 如果生成缩略图失败，显示错误信息
                     thumb_canvas.create_rectangle(1, 1, 99, 99, outline="#bdc3c7", width=1)
-                    thumb_canvas.create_text(50, 45, text="无法显示", fill="red", font=("Segoe UI", 10))
-                    thumb_canvas.create_text(50, 60, text=str(e)[:20] + "...", fill="gray", font=("Segoe UI", 8))
+                    thumb_canvas.create_text(50, 45, text="无法显示", fill="red", font=("微软雅黑", 10))
+                    thumb_canvas.create_text(50, 60, text=str(e)[:20] + "...", fill="gray", font=("微软雅黑", 8))
                     img_tk = None
                     print(f"生成缩略图失败 {file_path}: {e}")
                 
@@ -1284,12 +1141,12 @@ class ImageCropperGUI:
                     
                     # 文件名，使用更清晰的字体
                     filename = os.path.basename(file_path)
-                    file_label = ttk.Label(info_frame, text=filename, anchor=tk.W, wraplength=500, font=("Segoe UI", 10, "bold"))
+                    file_label = ttk.Label(info_frame, text=filename, anchor=tk.W, wraplength=500, font=("微软雅黑", 10, "bold"))
                     file_label.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 2))
                     
                     # 文件路径（截断显示）
                     short_path = file_path if len(file_path) < 60 else "..." + file_path[-60:]
-                    path_label = ttk.Label(info_frame, text=short_path, anchor=tk.W, foreground="#666", wraplength=500, font=("Segoe UI", 8))
+                    path_label = ttk.Label(info_frame, text=short_path, anchor=tk.W, foreground="#666", wraplength=500, font=("微软雅黑", 8))
                     path_label.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 2))
                     
                     # 文件信息：尺寸和大小
@@ -1298,7 +1155,7 @@ class ImageCropperGUI:
                             width, height = img.size
                             size = os.path.getsize(file_path) / 1024  # KB
                             info_text = f"尺寸: {width}x{height}px | 大小: {size:.1f}KB"
-                            size_label = ttk.Label(info_frame, text=info_text, anchor=tk.W, foreground="#888", font=("Segoe UI", 8))
+                            size_label = ttk.Label(info_frame, text=info_text, anchor=tk.W, foreground="#888", font=("微软雅黑", 8))
                             size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
                             # 绑定鼠标滚轮事件，确保在图片规格信息处也能滚动
                             size_label.bind("<MouseWheel>", self.on_canvas_scroll)
@@ -1391,8 +1248,8 @@ class ImageCropperGUI:
                 except Exception as e:
                     # 如果生成缩略图失败，显示错误信息
                     thumb_canvas.create_rectangle(1, 1, thumb_width-1, thumb_height-1, outline="#bdc3c7", width=1)
-                    thumb_canvas.create_text(thumb_width//2, thumb_height//2 - 10, text="无法显示", fill="red", font=(("Segoe UI", 10)))
-                    thumb_canvas.create_text(thumb_width//2, thumb_height//2 + 10, text=str(e)[:20] + "...", fill="gray", font=(("Segoe UI", 8)))
+                    thumb_canvas.create_text(thumb_width//2, thumb_height//2 - 10, text="无法显示", fill="red", font=("微软雅黑", 10))
+                    thumb_canvas.create_text(thumb_width//2, thumb_height//2 + 10, text=str(e)[:20] + "...", fill="gray", font=("微软雅黑", 8))
                     img_tk = None
                     print(f"生成缩略图失败 {file_path}: {e}")
                 
@@ -1402,14 +1259,14 @@ class ImageCropperGUI:
                     # 截断过长的文件名
                     if len(filename) > 20:
                         filename = filename[:17] + "..."
-                    file_label = ttk.Label(thumb_container, text=filename, anchor=tk.CENTER, wraplength=thumb_width, font=("Segoe UI", 9), foreground="#2c3e50")
+                    file_label = ttk.Label(thumb_container, text=filename, anchor=tk.CENTER, wraplength=thumb_width, font=("微软雅黑", 9), foreground="#2c3e50")
                     file_label.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(5, 2))
                     
                     # 文件信息：尺寸
                     try:
                         with Image.open(file_path) as img:
                             width, height = img.size
-                            size_label = ttk.Label(thumb_container, text=f"{width}x{height}px", anchor=tk.CENTER, font=("Segoe UI", 8), foreground="#888")
+                            size_label = ttk.Label(thumb_container, text=f"{width}x{height}px", anchor=tk.CENTER, font=("微软雅黑", 8), foreground="#888")
                             size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
                             # 绑定鼠标滚轮事件，确保在平铺模式下图片规格信息处也能滚动
                             size_label.bind("<MouseWheel>", self.on_canvas_scroll)
@@ -1634,7 +1491,9 @@ class ImageCropperGUI:
 
 def main():
     """主函数"""
-    root = tk.Tk()
+    # 使用ttkbootstrap创建现代化主题窗口
+    style = Style(theme='lumen')
+    root = style.master
     app = ImageCropperGUI(root)
     root.mainloop()
 
