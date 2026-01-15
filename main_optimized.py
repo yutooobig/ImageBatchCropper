@@ -473,10 +473,8 @@ class ImageCropperGUI:
             )
         
         if files:
-            for file_path in files:
-                if os.path.isfile(file_path):
-                    self.add_thumbnail(file_path)
-            
+            # 批量添加文件，减少UI重绘次数
+            self._batch_add_thumbnails(files)
             self.update_status(f"已添加 {len(files)} 个文件")
     
     def add_folder(self):
@@ -492,12 +490,27 @@ class ImageCropperGUI:
                         files.append(os.path.join(root, filename))
             
             if files:
-                for file_path in files:
-                    self.add_thumbnail(file_path)
-                
+                # 批量添加文件，减少UI重绘次数
+                self._batch_add_thumbnails(files)
                 self.update_status(f"从文件夹添加了 {len(files)} 个文件")
             else:
                 messagebox.showinfo("提示", "该文件夹中没有找到图片文件")
+    
+    def _batch_add_thumbnails(self, files):
+        """批量添加缩略图，减少UI重绘次数"""
+        # 收集所有要添加的文件
+        valid_files = [file_path for file_path in files if os.path.isfile(file_path)]
+        
+        if not valid_files:
+            return
+        
+        # 批量创建缩略图，最后统一更新滚动区域
+        for file_path in valid_files:
+            self.add_thumbnail(file_path, update_scroll=False)
+        
+        # 最后统一更新滚动区域，减少重绘次数
+        self.thumbnail_frame.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
     
 
     
@@ -1078,15 +1091,15 @@ class ImageCropperGUI:
         for file_path in files:
             self.add_thumbnail(file_path)
     
-    def add_thumbnail(self, file_path):
+    def add_thumbnail(self, file_path, update_scroll=True):
         """添加缩略图到列表"""
         try:
             # 获取当前索引
             current_index = len(self.thumbnails)
             
             if self.current_view_mode == "list":
-                # 列表模式布局
-                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5", relief="flat", borderwidth=2)
+                # 列表模式布局 - 移除边框
+                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5", relief="flat", borderwidth=0)
                 thumb_container.grid(row=current_index * 2, sticky=(tk.W, tk.E), pady=2)
                 thumb_container.columnconfigure(1, weight=1)
                 
@@ -1094,8 +1107,8 @@ class ImageCropperGUI:
                 thumb_container.bind("<Enter>", lambda e, container=thumb_container: container.config(relief="raised"))
                 thumb_container.bind("<Leave>", lambda e, container=thumb_container: container.config(relief="flat"))
                 
-                # 缩略图画布，添加边框
-                thumb_canvas = tk.Canvas(thumb_container, width=100, height=100, bg="white", relief="solid", borderwidth=1)
+                # 缩略图画布 - 移除边框
+                thumb_canvas = tk.Canvas(thumb_container, width=100, height=100, bg="white", relief="flat", borderwidth=0)
                 thumb_canvas.grid(row=0, column=0, sticky=tk.NW, padx=(0, 10))
                 
                 # 直接在内存中生成并显示缩略图
@@ -1105,8 +1118,8 @@ class ImageCropperGUI:
                         thumb_size = (100, 100)
                         thumb_img = Image.new("RGB", thumb_size, (255, 255, 255))
                         
-                        # 缩放原图
-                        img.thumbnail(thumb_size, Image.LANCZOS)
+                        # 缩放原图，使用更快的缩放算法
+                        img.thumbnail(thumb_size, Image.BILINEAR)
                         
                         # 计算居中位置
                         img_width, img_height = img.size
@@ -1119,15 +1132,11 @@ class ImageCropperGUI:
                         # 转换为PhotoImage
                         img_tk = ImageTk.PhotoImage(thumb_img)
                         
-                        # 居中显示
+                        # 居中显示 - 移除边框绘制
                         thumb_canvas.create_image(50, 50, image=img_tk)
                         thumb_canvas.image = img_tk  # 保持引用
-                        
-                        # 添加图片边框
-                        thumb_canvas.create_rectangle(1, 1, 99, 99, outline="#bdc3c7", width=1)
                 except Exception as e:
-                    # 如果生成缩略图失败，显示错误信息
-                    thumb_canvas.create_rectangle(1, 1, 99, 99, outline="#bdc3c7", width=1)
+                    # 如果生成缩略图失败，显示错误信息 - 移除边框
                     thumb_canvas.create_text(50, 45, text="无法显示", fill="red", font=("微软雅黑", 10))
                     thumb_canvas.create_text(50, 60, text=str(e)[:20] + "...", fill="gray", font=("微软雅黑", 8))
                     img_tk = None
@@ -1151,14 +1160,17 @@ class ImageCropperGUI:
                     
                     # 文件信息：尺寸和大小
                     try:
-                        with Image.open(file_path) as img:
-                            width, height = img.size
-                            size = os.path.getsize(file_path) / 1024  # KB
-                            info_text = f"尺寸: {width}x{height}px | 大小: {size:.1f}KB"
-                            size_label = ttk.Label(info_frame, text=info_text, anchor=tk.W, foreground="#888", font=("微软雅黑", 8))
-                            size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
-                            # 绑定鼠标滚轮事件，确保在图片规格信息处也能滚动
-                            size_label.bind("<MouseWheel>", self.on_canvas_scroll)
+                        # 避免重复打开文件，直接从已打开的img对象获取信息
+                        # 但由于img对象已经关闭，这里还是需要重新打开，不过使用更高效的方式
+                        img = Image.open(file_path)
+                        width, height = img.size
+                        img.close()  # 立即关闭，释放资源
+                        size = os.path.getsize(file_path) / 1024  # KB
+                        info_text = f"尺寸: {width}x{height}px | 大小: {size:.1f}KB"
+                        size_label = ttk.Label(info_frame, text=info_text, anchor=tk.W, foreground="#888", font=("微软雅黑", 8))
+                        size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
+                        # 绑定鼠标滚轮事件，确保在图片规格信息处也能滚动
+                        size_label.bind("<MouseWheel>", self.on_canvas_scroll)
                     except:
                         pass
                     
@@ -1203,8 +1215,8 @@ class ImageCropperGUI:
                 for i in range(cols):
                     self.thumbnail_frame.columnconfigure(i, weight=1)
                 
-                # 创建缩略图容器，添加边框和hover效果
-                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5", relief="flat", borderwidth=2)
+                # 创建缩略图容器，移除边框
+                thumb_container = ttk.Frame(self.thumbnail_frame, padding="5", relief="flat", borderwidth=0)
                 thumb_container.grid(row=row, column=col, padx=5, pady=5, sticky=(tk.W, tk.E, tk.N, tk.S))
                 thumb_container.columnconfigure(0, weight=1)
                 
@@ -1212,11 +1224,11 @@ class ImageCropperGUI:
                 thumb_container.bind("<Enter>", lambda e, container=thumb_container: container.config(relief="raised"))
                 thumb_container.bind("<Leave>", lambda e, container=thumb_container: container.config(relief="flat"))
                 
-                # 缩略图画布，添加边框和白色背景
+                # 缩略图画布 - 移除边框
                 thumb_width = 120
                 thumb_height = 120
                 
-                thumb_canvas = tk.Canvas(thumb_container, width=thumb_width, height=thumb_height, bg="white", relief="solid", borderwidth=1)
+                thumb_canvas = tk.Canvas(thumb_container, width=thumb_width, height=thumb_height, bg="white", relief="flat", borderwidth=0)
                 thumb_canvas.grid(row=0, column=0, sticky=tk.NW)
                 
                 # 直接在内存中生成并显示缩略图
@@ -1225,8 +1237,8 @@ class ImageCropperGUI:
                         # 计算缩放比例，添加白色背景
                         thumb_img = Image.new("RGB", (thumb_width, thumb_height), (255, 255, 255))
                         
-                        # 缩放原图
-                        img.thumbnail((thumb_width, thumb_height), Image.LANCZOS)
+                        # 缩放原图，使用更快的缩放算法
+                        img.thumbnail((thumb_width, thumb_height), Image.BILINEAR)
                         
                         # 计算居中位置
                         img_width, img_height = img.size
@@ -1239,15 +1251,11 @@ class ImageCropperGUI:
                         # 转换为PhotoImage
                         img_tk = ImageTk.PhotoImage(thumb_img)
                         
-                        # 居中显示
+                        # 居中显示 - 移除边框绘制
                         thumb_canvas.create_image(thumb_width//2, thumb_height//2, image=img_tk)
                         thumb_canvas.image = img_tk  # 保持引用
-                        
-                        # 添加图片边框
-                        thumb_canvas.create_rectangle(1, 1, thumb_width-1, thumb_height-1, outline="#bdc3c7", width=1)
                 except Exception as e:
-                    # 如果生成缩略图失败，显示错误信息
-                    thumb_canvas.create_rectangle(1, 1, thumb_width-1, thumb_height-1, outline="#bdc3c7", width=1)
+                    # 如果生成缩略图失败，显示错误信息 - 移除边框
                     thumb_canvas.create_text(thumb_width//2, thumb_height//2 - 10, text="无法显示", fill="red", font=("微软雅黑", 10))
                     thumb_canvas.create_text(thumb_width//2, thumb_height//2 + 10, text=str(e)[:20] + "...", fill="gray", font=("微软雅黑", 8))
                     img_tk = None
@@ -1264,12 +1272,14 @@ class ImageCropperGUI:
                     
                     # 文件信息：尺寸
                     try:
-                        with Image.open(file_path) as img:
-                            width, height = img.size
-                            size_label = ttk.Label(thumb_container, text=f"{width}x{height}px", anchor=tk.CENTER, font=("微软雅黑", 8), foreground="#888")
-                            size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
-                            # 绑定鼠标滚轮事件，确保在平铺模式下图片规格信息处也能滚动
-                            size_label.bind("<MouseWheel>", self.on_canvas_scroll)
+                        # 避免重复打开文件，直接从已打开的img对象获取信息
+                        img = Image.open(file_path)
+                        width, height = img.size
+                        img.close()  # 立即关闭，释放资源
+                        size_label = ttk.Label(thumb_container, text=f"{width}x{height}px", anchor=tk.CENTER, font=("微软雅黑", 8), foreground="#888")
+                        size_label.grid(row=2, column=0, sticky=(tk.W, tk.E))
+                        # 绑定鼠标滚轮事件，确保在平铺模式下图片规格信息处也能滚动
+                        size_label.bind("<MouseWheel>", self.on_canvas_scroll)
                     except:
                         pass
                     
@@ -1294,9 +1304,10 @@ class ImageCropperGUI:
                 "separator": separator
             })
             
-            # 更新滚动区域
-            self.thumbnail_frame.update_idletasks()
-            self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            # 仅在需要时更新滚动区域，批量添加时会统一更新
+            if update_scroll:
+                self.thumbnail_frame.update_idletasks()
+                self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             
         except Exception as e:
             print(f"添加缩略图失败: {e}")
@@ -1313,7 +1324,13 @@ class ImageCropperGUI:
         
         # 更新滚动区域
         self.thumbnail_frame.update_idletasks()
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
+        # 无论如何都设置一个固定的滚动区域，确保画布有足够大的可点击区域
+        self.canvas.configure(scrollregion=(0, 0, self.canvas.winfo_width(), max(200, self.canvas.winfo_height())))
+        
+        # 确保thumbnail_frame不会阻挡画布的双击事件
+        # 给thumbnail_frame也绑定双击事件
+        self.thumbnail_frame.bind('<Double-Button-1>', lambda e: self.add_files())
         
         self.update_status("文件列表已清空")
     
